@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms & Conditions - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">Terms & Conditions</h1>
+                <p class="lead text-muted">Please read these terms carefully before using our services</p>
+                <p class="small text-muted">Last updated: {{ "now"|date:"F d, Y" }}</p>
+            </div>
+
+            <!-- Agreement -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 fw-bold text-primary mb-3">Agreement to Terms</h2>
+                    <p class="text-muted">
+                        By accessing and using {{ site_name }}, you accept and agree to be bound by the terms and 
+                        provisions of this agreement. If you do not agree to abide by the above, please do not use this service.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Use License -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Use License</h2>
+                <div class="card border-0 bg-light">
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-3">
+                            Permission is granted to temporarily download one copy of the materials on {{ site_name }}'s 
+                            website for personal, non-commercial transitory viewing only.
+                        </p>
+                        <h5 class="fw-bold mb-2">This license shall automatically terminate if you violate any of these restrictions:</h5>
+                        <ul class="text-muted">
+                            <li>Modify or copy the materials</li>
+                            <li>Use the materials for commercial purposes or public display</li>
+                            <li>Attempt to reverse engineer any software contained on the website</li>
+                            <li>Remove any copyright or proprietary notations from the materials</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Terms -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Account Terms</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-0 h-100">
+                            <div class="card-body p-3">
+                                <h5 class="fw-bold text-primary">Account Responsibility</h5>
+                                <p class="text-muted small mb-0">
+                                    You are responsible for maintaining the security of your account and password. 
+                                    {{ site_name }} cannot be held liable for any loss or damage from your failure to comply.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-0 h-100">
+                            <div class="card-body p-3">
+                                <h5 class="fw-bold text-primary">Accurate Information</h5>
+                                <p class="text-muted small mb-0">
+                                    You must provide accurate, complete, and current information when creating your account 
+                                    and placing orders.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders and Payments -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Orders and Payments</h2>
+                <div class="card border-0 bg-light">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold">Order Acceptance</h5>
+                                <p class="text-muted small">
+                                    We reserve the right to refuse or cancel any order for any reason. 
+                                    Your receipt of an order confirmation does not signify our acceptance of your order.
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold">Pricing</h5>
+                                <p class="text-muted small">
+                                    All prices are subject to change without notice. We reserve the right to correct 
+                                    any pricing errors on our website.
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold">Payment Terms</h5>
+                                <p class="text-muted small">
+                                    Payment is due at the time of purchase. We accept various payment methods 
+                                    including cash on delivery.
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold">Order Fulfillment</h5>
+                                <p class="text-muted small">
+                                    We will make every effort to fulfill orders in a timely manner. 
+                                    Delivery times are estimates and not guaranteed.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prohibited Uses -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Prohibited Uses</h2>
+                <div class="alert alert-warning" role="alert">
+                    <h5 class="alert-heading fw-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i>You may not use our service:
+                    </h5>
+                    <ul class="mb-0">
+                        <li>For any unlawful purpose or to solicit others to unlawful acts</li>
+                        <li>To violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances</li>
+                        <li>To infringe upon or violate our intellectual property rights or the intellectual property rights of others</li>
+                        <li>To harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate</li>
+                        <li>To submit false or misleading information</li>
+                        <li>To upload or transmit viruses or any other type of malicious code</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Disclaimer</h2>
+                <div class="card border-warning">
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-2">
+                            The information on this website is provided on an "as is" basis. To the fullest extent permitted by law, 
+                            this Company excludes all representations, warranties, conditions and terms.
+                        </p>
+                        <p class="text-muted mb-0">
+                            {{ site_name }} shall not be liable for any damages arising out of or in connection with your use of this website.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limitations -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Limitations</h2>
+                <p class="text-muted">
+                    In no event shall {{ site_name }} or its suppliers be liable for any damages (including, without limitation, 
+                    damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use 
+                    the materials on {{ site_name }}'s website.
+                </p>
+            </div>
+
+            <!-- Governing Law -->
+            <div class="mb-4">
+                <h2 class="h4 fw-bold mb-3">Governing Law</h2>
+                <p class="text-muted">
+                    These terms and conditions are governed by and construed in accordance with the laws and you irrevocably 
+                    submit to the exclusive jurisdiction of the courts in that state or location.
+                </p>
+            </div>
+
+            <!-- Changes to Terms -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-3">Changes to Terms</h2>
+                <div class="card border-0 bg-primary text-white">
+                    <div class="card-body p-4">
+                        <p class="mb-2">
+                            {{ site_name }} reserves the right to revise these terms of service at any time without notice. 
+                            By using this website, you are agreeing to be bound by the then current version of these terms of service.
+                        </p>
+                        <p class="mb-0">
+                            <strong>We recommend checking this page periodically for any changes.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="text-center">
+                <h3 class="h4 fw-bold mb-3">Questions About Our Terms?</h3>
+                <p class="text-muted mb-3">If you have any questions about these Terms & Conditions, please contact us.</p>
+                <a href="{% url 'contact' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-envelope me-2"></i>Contact Us
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

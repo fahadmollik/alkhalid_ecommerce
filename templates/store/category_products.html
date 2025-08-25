@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products' %}">Products</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Products Section -->
+    <div id="products" class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">{{ category.name }} Products</h2>
+                <p class="text-muted">{{ products.paginator.count }} product{{ products.paginator.count|pluralize }} found</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-lg-4 col-md-6 col-6">
+            <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                <div class="product-image-container position-relative">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                    <div class="product-overlay">
+                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View</span>
+                        </a>
+                        {% if product.is_in_stock %}
+                        <button class="btn btn-success btn-sm quick-add-btn" 
+                                data-product-id="{{ product.id }}"
+                                data-bs-toggle="tooltip" 
+                                title="Quick Add to Cart">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Badges -->
+                    <div class="position-absolute top-0 start-0 m-2">
+                        {% if product.is_best_seller %}
+                        <span class="badge bg-danger mb-1 d-block">Best Seller</span>
+                        {% endif %}
+                        {% if product.is_featured %}
+                        <span class="badge bg-warning">Featured</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if not product.is_in_stock %}
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-secondary">Out of Stock</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="p-3">
+                    <h5 class="product-title mb-2">
+                        <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                            {{ product.name }}
+                        </a>
+                    </h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="price-section">
+                            {% if product.has_discount %}
+                            <div class="d-flex flex-column">
+                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                <span class="price fw-bold text-primary fs-5">৳{{ product.price }}</span>
+                            </div>
+                            {% else %}
+                            <span class="price fw-bold text-primary fs-5">৳{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        {% if product.is_in_stock %}
+                        {% if product.id in cart_product_ids %}
+                        <button class="btn btn-success btn-sm" disabled title="Added to Cart">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        {% else %}
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </form>
+                            <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
+                                <i class="fas fa-bolt"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <button class="btn btn-secondary btn-sm" disabled>
+                            <i class="fas fa-times"></i> <span class="d-none d-md-inline">Out of Stock</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mt-2 d-none d-sm-block">
+                        <!-- Stock count removed -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if products.has_other_pages %}
+    <nav aria-label="Products pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in products.paginator.page_range %}
+            {% if page_num == products.number %}
+            <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+            </li>
+            {% elif page_num > products.number|add:'-3' and page_num < products.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ products.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <!-- No Products Found -->
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-cube fa-4x text-muted"></i>
+        </div>
+        <h3 class="fw-bold mb-3">No Products Available</h3>
+        <p class="text-muted mb-4">There are currently no products in the {{ category.name }} category.</p>
+        <a href="{% url 'products' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>Browse All Products
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- Back to Categories -->
+    <div class="text-center mt-5">
+        <a href="{% url 'products' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to All Products
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick add functionality
+document.querySelectorAll('.quick-add-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.dataset.productId;
+        
+        // Create quick add form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/add-to-cart/${productId}/`;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.innerHTML = `
+            <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+            <input type="hidden" name="quantity" value="1">
+        `;
+        
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+</script>
+{% endblock %}

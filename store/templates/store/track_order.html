@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Your Order{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="h2 mb-3">
+                    <i class="bi bi-search text-primary"></i>
+                    Track Your Order
+                </h1>
+                <p class="text-muted">Enter your tracking number to see the current status of your order</p>
+            </div>
+
+            <!-- Tracking Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="tracking_number" class="form-label fw-bold">
+                                <i class="bi bi-barcode"></i>
+                                Tracking Number / Order ID
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="tracking_number" 
+                                   name="tracking_number" 
+                                   placeholder="Enter your tracking number (e.g., ORD20240726123456)"
+                                   value="{{ request.POST.tracking_number }}"
+                                   required>
+                            <div class="form-text">
+                                You can find your tracking number in the order confirmation email or receipt.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-search"></i>
+                                Track Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            {% if error_message %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>{{ error_message }}</div>
+                </div>
+            {% endif %}
+
+            <!-- Order Details -->
+            {% if order %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-package"></i>
+                            Order Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Order Information</h6>
+                                <p class="mb-1"><strong>Order ID:</strong> {{ order.order_id }}</p>
+                                <p class="mb-1"><strong>Tracking Number:</strong> {{ order.tracking_number }}</p>
+                                <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                                <p class="mb-0"><strong>Total Amount:</strong> ৳{{ order.total_amount }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Customer Information</h6>
+                                <p class="mb-1"><strong>Name:</strong> {{ order.customer_name }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ order.customer_phone }}</p>
+                                {% if order.customer_email %}
+                                    <p class="mb-1"><strong>Email:</strong> {{ order.customer_email }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Current Status -->
+                        <div class="text-center mb-4">
+                            <div class="status-badge mb-3">
+                                {% with status_info=order.get_status_display_with_icon %}
+                                    <i class="bi {{ status_info.icon }} text-primary" style="font-size: 3rem;"></i>
+                                    <h4 class="mt-2 mb-1">{{ status_info.status }}</h4>
+                                {% endwith %}
+                                <p class="text-muted">Last updated: {{ order.updated_at|date:"M d, Y g:i A" }}</p>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="progress mb-3" style="height: 8px;">
+                                <div class="progress-bar bg-primary" 
+                                     role="progressbar" 
+                                     style="width: {{ order.get_status_progress }}%"
+                                     aria-valuenow="{{ order.get_status_progress }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ order.get_status_progress }}% Complete</small>
+                        </div>
+
+                        <!-- Shipping Address -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-2">Shipping Address</h6>
+                            <div class="bg-light p-3 rounded">
+                                {{ order.shipping_address|linebreaks }}
+                            </div>
+                        </div>
+
+                        <!-- Order Items -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">Order Items</h6>
+                            <div class="table-responsive">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                        {% for item in order.items.all %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if item.product.image %}
+                                                            <img src="{{ item.product.image.url }}" 
+                                                                 alt="{{ item.product.name }}" 
+                                                                 class="rounded me-3"
+                                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                                        {% else %}
+                                                            <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center"
+                                                                 style="width: 60px; height: 60px;">
+                                                                <i class="bi bi-image text-muted"></i>
+                                                            </div>
+                                                        {% endif %}
+                                                        <div>
+                                                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                                                            <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong>৳{{ item.total_price }}</strong>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="text-center">
+                            <a href="{% url 'order_tracking_details' order.tracking_number %}" 
+                               class="btn btn-outline-primary me-2">
+                                <i class="bi bi-clock-history"></i>
+                                View Detailed Timeline
+                            </a>
+                            <a href="{% url 'contact' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-headset"></i>
+                                Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Help Section -->
+            {% if not order %}
+                <div class="card mt-4">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="bi bi-question-circle text-primary"></i>
+                            Need Help?
+                        </h5>
+                        <p class="card-text text-muted">
+                            If you can't find your tracking number or need assistance, please contact our support team.
+                        </p>
+                        <a href="{% url 'contact' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-headset"></i>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.status-badge {
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    border: 1px solid #dee2e6;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+</style>
+{% endblock %}

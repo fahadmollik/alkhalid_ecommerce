@@ -1,0 +1,18 @@
+{% extends 'custom_admin/base.html' %}
+{% block title %}Delete Delivery Option{% endblock %}
+{% block content %}
+<div class="content-header mb-4 d-flex justify-content-between align-items-center">
+    <h1 class="h3 mb-0">Delete Delivery Option</h1>
+    <a href="{% url 'custom_admin:deliveryoption_list' %}" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to List</a>
+</div>
+<div class="card border-danger">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <p>Are you sure you want to delete <strong>{{ option.name }}</strong>?</p>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+                    <a href="{% url 'custom_admin:deliveryoption_list' %}" class="btn btn-secondary ms-2"><i class="bi bi-arrow-left"></i> Back to List</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

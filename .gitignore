@@ -1,0 +1,61 @@
+# Django/Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+*.pyo
+*.pyd
+*.env
+*.DS_Store
+
+# Media/static
+/media/
+/static/
+
+# VS Code
+.vscode/
+
+# OS/Editor
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Logs
+*.log
+
+# Node/npm
+node_modules/
+
+# MacOS
+.DS_Store
+
+# Coverage/test
+htmlcov/
+.coverage
+*.cover
+*.py,cover
+
+# Migrations
+**/migrations/*
+!**/migrations/__init__.py
+
+# Environment
+venv/
+.env
+.env.*
+
+# Other
+.idea/
+*.iml
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Secret files
+secrets.json
+
+# System files
+Thumbs.db

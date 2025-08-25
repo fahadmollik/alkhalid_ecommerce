@@ -1,0 +1,203 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Admin Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 text-gray-800">
+                    <i class="bi bi-person-circle"></i> Admin Profile
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-person-gear"></i> Profile Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-gray-700 mb-3">
+                                    <i class="bi bi-info-circle"></i> Basic Information
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
+                                <small class="text-muted">Username cannot be changed</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Account Details -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-gray-700 mb-3">
+                                    <i class="bi bi-shield-check"></i> Account Details
+                                </h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Account Status</label>
+                                <div class="form-control-plaintext">
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle"></i> Inactive
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Admin Level</label>
+                                <div class="form-control-plaintext">
+                                    {% if user.is_superuser %}
+                                        <span class="badge bg-primary">
+                                            <i class="bi bi-star"></i> Super Admin
+                                        </span>
+                                    {% elif user.is_staff %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-person-badge"></i> Staff Admin
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Date Joined</label>
+                                <div class="form-control-plaintext">
+                                    <i class="bi bi-calendar-plus"></i> {{ user.date_joined|date:"F d, Y" }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Login</label>
+                                <div class="form-control-plaintext">
+                                    <i class="bi bi-clock"></i> 
+                                    {% if user.last_login %}
+                                        {{ user.last_login|date:"F d, Y g:i A" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-gray-700 mb-3">
+                                    <i class="bi bi-key"></i> Change Password
+                                </h5>
+                                <p class="text-muted small">Leave password fields empty if you don't want to change your password.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" name="current_password">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                                <small class="text-muted">Minimum 8 characters</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'custom_admin:dashboard' %}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Update Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password strength indicator
+    const newPasswordInput = document.getElementById('new_password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    
+    function validatePasswords() {
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        // Reset styles
+        newPasswordInput.classList.remove('is-valid', 'is-invalid');
+        confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+        
+        if (newPassword) {
+            if (newPassword.length >= 8) {
+                newPasswordInput.classList.add('is-valid');
+            } else {
+                newPasswordInput.classList.add('is-invalid');
+            }
+            
+            if (confirmPassword) {
+                if (newPassword === confirmPassword) {
+                    confirmPasswordInput.classList.add('is-valid');
+                } else {
+                    confirmPasswordInput.classList.add('is-invalid');
+                }
+            }
+        }
+    }
+    
+    newPasswordInput.addEventListener('input', validatePasswords);
+    confirmPasswordInput.addEventListener('input', validatePasswords);
+});
+</script>
+{% endblock %}

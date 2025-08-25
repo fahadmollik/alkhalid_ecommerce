@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Search -->
+                    <form method="GET" class="mb-4">
+                        <div class="mb-3">
+                            <label class="form-label">Search Products</label>
+                            <input type="text" name="search" class="form-control" 
+                                   value="{{ search_query }}" placeholder="Search...">
+                        </div>
+                        
+                        <!-- Categories -->
+                        <div class="mb-3">
+                            <label class="form-label">Categories</label>
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" 
+                                        {% if category.id|stringformat:"s" == current_category %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Filter
+                        </button>
+                        
+                        {% if search_query or current_category %}
+                        <a href="{% url 'products' %}" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="fas fa-times me-2"></i>Clear Filters
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        {% if search_query %}
+                            Search Results for "{{ search_query }}"
+                        {% elif current_category_obj %}
+                            {{ current_category_obj.name }} Products
+                        {% elif featured %}
+                            Best Sellers
+                        {% else %}
+                            All Products
+                        {% endif %}
+                    </h2>
+                    <p class="text-muted">{{ products.paginator.count }} product{{ products.paginator.count|pluralize }} found</p>
+                </div>
+                
+                <!-- Sort Options -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-sort me-2"></i>Sort By
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="?sort=name">Name A-Z</a></li>
+                        <li><a class="dropdown-item" href="?sort=-name">Name Z-A</a></li>
+                        <li><a class="dropdown-item" href="?sort=price">Price Low to High</a></li>
+                        <li><a class="dropdown-item" href="?sort=-price">Price High to Low</a></li>
+                        <li><a class="dropdown-item" href="?sort=-created_at">Newest First</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Products Grid -->
+            {% if products %}
+            <div class="row g-4">
+                {% for product in products %}
+                <div class="col-lg-4 col-md-6 col-6">
+                    <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                        <div class="product-image-container position-relative">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                     onerror="this.src='/static/images/no-image.png';">
+                            {% else %}
+                                <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                            {% endif %}
+                            <div class="product-overlay">
+                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm me-2">
+                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View</span>
+                                </a>
+                                {% if product.is_in_stock %}
+                                <button class="btn btn-success btn-sm quick-add-btn" 
+                                        data-product-id="{{ product.id }}"
+                                        data-bs-toggle="tooltip" 
+                                        title="Quick Add to Cart">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Badges -->
+                            <div class="position-absolute top-0 start-0 m-2">
+                                {% if product.is_best_seller %}
+                                <span class="badge bg-danger mb-1 d-block">Best Seller</span>
+                                {% endif %}
+                                {% if product.is_featured %}
+                                <span class="badge bg-warning">Featured</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if not product.is_in_stock %}
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-secondary">Out of Stock</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="p-3">
+                            <h5 class="product-title mb-2">
+                                <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                    {{ product.name }}
+                                </a>
+                            </h5>
+                            <p class="text-primary small mb-2 d-none d-sm-block">
+                                <i class="fas fa-tag me-1"></i>{{ product.category.name }}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="price-section">
+                                    {% if product.has_discount %}
+                                    <div class="d-flex flex-column">
+                                        <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                        <span class="price fw-bold text-primary fs-5">৳{{ product.price }}</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="price fw-bold text-primary fs-5">৳{{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.is_in_stock %}
+                                {% if product.id in cart_product_ids %}
+                                <button class="btn btn-success btn-sm" disabled>
+                                    <i class="fas fa-check"></i> <span class="d-none d-md-inline">Added</span>
+                                </button>
+                                {% else %}
+                                <div class="d-flex gap-2">
+                                    <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </form>
+                                    <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
+                                        <i class="fas fa-bolt"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled>
+                                    <i class="fas fa-times"></i> <span class="d-none d-md-inline">Out of Stock</span>
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Removed stock count display for cleaner UI -->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if products.has_other_pages %}
+            <nav aria-label="Products pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in products.paginator.page_range %}
+                    {% if page_num == products.number %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% elif page_num > products.number|add:'-3' and page_num < products.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- No Products Found -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-search fa-4x text-muted"></i>
+                </div>
+                <h3 class="fw-bold mb-3">No Products Found</h3>
+                <p class="text-muted mb-4">
+                    {% if search_query %}
+                        No products match your search criteria "{{ search_query }}".
+                    {% else %}
+                        No products available in this category.
+                    {% endif %}
+                </p>
+                <a href="{% url 'products' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>View All Products
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Add to Cart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickAddForm" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" value="1" min="1" max="10">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Quick add functionality
+document.querySelectorAll('.quick-add-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.dataset.productId;
+        const form = document.getElementById('quickAddForm');
+        form.action = `/add-to-cart/${productId}/`;
+        const modal = new bootstrap.Modal(document.getElementById('quickAddModal'));
+        modal.show();
+    });
+});
+
+// Add to cart form reload fix
+document.querySelectorAll('.add-to-cart-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<span class="loading"></span>';
+        button.disabled = true;
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            } else {
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}

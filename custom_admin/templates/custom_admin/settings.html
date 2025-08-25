@@ -1,0 +1,232 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Settings</h1>
+            <p class="text-muted">Configure your e-commerce administration</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-palette"></i> Site Branding</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="brandingForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="branding">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="site_name" class="form-label">Site Name</label>
+                                <input type="text" class="form-control" id="site_name" name="site_name" 
+                                       value="{{ branding.site_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="site_tagline" class="form-label">Tagline</label>
+                                <input type="text" class="form-control" id="site_tagline" name="site_tagline" 
+                                       value="{{ branding.site_tagline }}" placeholder="Optional tagline">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="logo" class="form-label">Logo</label>
+                                <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                {% if branding.logo %}
+                                    <div class="mt-2">
+                                        <img src="{{ branding.logo.url }}" alt="Current Logo" style="height: 50px;">
+                                        <small class="text-muted d-block">Current logo</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="favicon" class="form-label">Favicon</label>
+                                <input type="file" class="form-control" id="favicon" name="favicon" accept="image/*">
+                                {% if branding.favicon %}
+                                    <div class="mt-2">
+                                        <img src="{{ branding.favicon.url }}" alt="Current Favicon" style="height: 20px;">
+                                        <small class="text-muted d-block">Current favicon</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="header_bg_color" class="form-label">Header Background Color</label>
+                                <input type="color" class="form-control form-control-color" id="header_bg_color" 
+                                       name="header_bg_color" value="{{ branding.header_bg_color }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="header_text_color" class="form-label">Header Text Color</label>
+                                <input type="color" class="form-control form-control-color" id="header_text_color" 
+                                       name="header_text_color" value="{{ branding.header_text_color }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                       value="{{ branding.phone_number }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Contact Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ branding.email }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="1">{{ branding.address }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="facebook_url" class="form-label">Facebook URL</label>
+                                <input type="url" class="form-control" id="facebook_url" name="facebook_url" 
+                                       value="{{ branding.facebook_url }}" placeholder="https://facebook.com/yourpage">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="youtube_url" class="form-label">YouTube URL</label>
+                                <input type="url" class="form-control" id="youtube_url" name="youtube_url" 
+                                       value="{{ branding.youtube_url }}" placeholder="https://youtube.com/yourchannel">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <h6><i class="bi bi-search"></i> SEO Settings</h6>
+                    
+                    <div class="mb-3">
+                        <label for="meta_description" class="form-label">Meta Description</label>
+                        <textarea class="form-control" id="meta_description" name="meta_description" 
+                                  rows="2" maxlength="160">{{ branding.meta_description }}</textarea>
+                        <div class="form-text">Brief description for search engines (max 160 characters)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="meta_keywords" class="form-label">Meta Keywords</label>
+                        <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" 
+                               value="{{ branding.meta_keywords }}">
+                        <div class="form-text">Comma-separated keywords for SEO</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Save Branding
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-gear"></i> General Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="general">
+                    
+                    <div class="mb-3">
+                        <label for="admin_email" class="form-label">Admin Email</label>
+                        <input type="email" class="form-control" id="admin_email" name="admin_email" 
+                               value="{{ admin_email }}">
+                        <div class="form-text">Primary contact email for admin notifications</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="items_per_page" class="form-label">Items Per Page</label>
+                        <select class="form-select" id="items_per_page" name="items_per_page">
+                            <option value="10" {% if items_per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if items_per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if items_per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if items_per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                        <div class="form-text">Number of items to display per page in lists</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Save General Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-info-circle"></i> System Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Django Version:</strong></td>
+                        <td>{{ django_version|default:"5.2.4" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Python Version:</strong></td>
+                        <td>{{ python_version|default:"3.13" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database:</strong></td>
+                        <td>SQLite</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Admin Version:</strong></td>
+                        <td>1.0.0</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-link"></i> Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'home' %}" target="_blank" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-globe"></i> View Website
+                    </a>
+                    <a href="{% url 'custom_admin:analytics' %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-graph-up"></i> Analytics
+                    </a>
+                    <a href="{% url 'custom_admin:dashboard' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

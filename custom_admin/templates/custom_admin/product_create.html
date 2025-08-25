@@ -1,0 +1,209 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Create Product{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Create Product</h1>
+            <p class="text-muted">Add a new product to your catalog</p>
+        </div>
+        <a href="{% url 'custom_admin:product_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Products
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">URL slug will be automatically generated from the product name</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Current Price (Sale Price) *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">৳</span>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           step="0.01" min="0" required onchange="calculateDiscount()">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="original_price" class="form-label">Original Price (Before Discount)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">৳</span>
+                                    <input type="number" class="form-control" id="original_price" name="original_price" 
+                                           step="0.01" min="0" onchange="calculateDiscount()" placeholder="Optional">
+                                </div>
+                                <div class="form-text">Leave empty if no discount applies</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Discount Display -->
+                    <div id="discount-info" class="mb-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Discount Percentage:</strong>
+                                    <span id="discount-percentage" class="badge bg-success">0%</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Savings Amount:</strong>
+                                    <span id="savings-amount" class="text-success">৳0</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Status:</strong>
+                                    <span id="discount-status" class="badge bg-primary">Regular Price</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="stock" class="form-label">Stock Quantity *</label>
+                                <input type="number" class="form-control" id="stock" name="stock" 
+                                       min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select Category</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Product Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <div class="form-text">Upload a product image (JPG, PNG, etc.)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="youtube_url" class="form-label">YouTube Video URL (Optional)</label>
+                        <input type="url" class="form-control" id="youtube_url" name="youtube_url" 
+                               placeholder="https://www.youtube.com/watch?v=...">
+                        <div class="form-text">Add a YouTube video to showcase your product</div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Create Product
+                        </button>
+                        <a href="{% url 'custom_admin:product_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Use clear, descriptive product names
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Write detailed descriptions for better SEO
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Upload high-quality images (1:1 ratio recommended)
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success"></i>
+                        Set competitive pricing
+                    </li>
+                    <li>
+                        <i class="bi bi-check text-success"></i>
+                        Monitor stock levels regularly
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Discount calculation function
+function calculateDiscount() {
+    const currentPrice = parseFloat(document.getElementById('price').value) || 0;
+    const originalPrice = parseFloat(document.getElementById('original_price').value) || 0;
+    const discountInfo = document.getElementById('discount-info');
+    
+    if (originalPrice > 0 && currentPrice > 0 && originalPrice > currentPrice) {
+        // Calculate discount
+        const discountAmount = originalPrice - currentPrice;
+        const discountPercentage = ((discountAmount / originalPrice) * 100).toFixed(1);
+        
+        // Update display
+        document.getElementById('discount-percentage').textContent = discountPercentage + '%';
+        document.getElementById('savings-amount').textContent = '৳' + discountAmount.toFixed(2);
+        document.getElementById('discount-status').textContent = 'On Sale';
+        document.getElementById('discount-status').className = 'badge bg-danger';
+        
+        discountInfo.style.display = 'block';
+    } else {
+        // No discount
+        document.getElementById('discount-percentage').textContent = '0%';
+        document.getElementById('savings-amount').textContent = '৳0';
+        document.getElementById('discount-status').textContent = 'Regular Price';
+        document.getElementById('discount-status').className = 'badge bg-primary';
+        
+        if (originalPrice > 0 || currentPrice > 0) {
+            discountInfo.style.display = 'block';
+        } else {
+            discountInfo.style.display = 'none';
+        }
+    }
+}
+
+// Generate slug from product name
+function generateSlug() {
+    const name = document.getElementById('name').value;
+    const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')        // Replace spaces with hyphens
+        .replace(/-+/g, '-')         // Replace multiple hyphens with single
+        .trim();                     // Remove leading/trailing spaces
+    document.getElementById('slug').value = slug;
+}
+
+// Initialize discount calculation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateDiscount();
+});
+</script>
+{% endblock %}

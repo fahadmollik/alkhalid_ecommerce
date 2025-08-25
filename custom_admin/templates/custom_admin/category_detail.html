@@ -1,0 +1,190 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">{{ category.name }}</h1>
+            <p class="text-muted">Edit category details and manage settings</p>
+        </div>
+        <div>
+            <a href="{% url 'custom_admin:category_list' %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Categories
+            </a>
+            <a href="{% url 'category_products' category.slug %}" target="_blank" class="btn btn-outline-success">
+                <i class="bi bi-eye"></i> View Category
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-pencil"></i> Category Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Category Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ category.name }}" required>
+                        <div class="form-text">URL slug will be automatically generated from the category name</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ category.description }}</textarea>
+                        <div class="form-text">Optional description for this category</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Category Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <div class="form-text">Leave empty to keep current image</div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update Category
+                        </button>
+                        <a href="{% url 'custom_admin:category_list' %}" class="btn btn-secondary">Cancel</a>
+                        <a href="{% url 'custom_admin:category_delete' category.slug %}" 
+                           class="btn btn-outline-danger ms-auto"
+                           onclick="return confirm('Are you sure you want to delete this category? This action cannot be undone.')">
+                            <i class="bi bi-trash"></i> Delete Category
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Current Image -->
+        {% if category.image %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0"><i class="bi bi-image"></i> Current Image</h6>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" 
+                         class="img-fluid rounded" style="max-height: 200px;">
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Category Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Category Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-1">{{ product_count }}</h4>
+                            <small class="text-muted">Total Products</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success mb-1">{{ category.slug|length }}</h4>
+                        <small class="text-muted">Slug Length</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Products -->
+        {% if products %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0"><i class="bi bi-box"></i> Recent Products</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for product in products %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                 class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-box text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ product.name|truncatechars:30 }}</h6>
+                                        <small class="text-muted">৳{{ product.price }}</small>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <a href="{% url 'custom_admin:product_detail' product.slug %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if product_count > products|length %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'custom_admin:product_list' %}?category={{ category.id }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                View All {{ product_count }} Products
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0"><i class="bi bi-box"></i> Products</h6>
+                </div>
+                <div class="card-body text-center">
+                    <i class="bi bi-box text-muted" style="font-size: 2rem;"></i>
+                    <p class="text-muted mt-2 mb-0">No products in this category</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Category Info -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0"><i class="bi bi-info-circle"></i> Category Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">URL Slug</label>
+                            <div class="form-control-plaintext">{{ category.slug }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Created Date</label>
+                            <div class="form-control-plaintext">{{ category.created_at|date:"F d, Y g:i A" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

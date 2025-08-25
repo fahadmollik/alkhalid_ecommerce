@@ -1,0 +1,804 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - E-Commerce Store{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    {% if hero_banners %}
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-indicators">
+            {% for banner in hero_banners %}
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+                    {% if forloop.first %}class="active"{% endif %}></button>
+            {% endfor %}
+        </div>
+        
+        <div class="carousel-inner">
+            {% for banner in hero_banners %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="hero-slide" style="background-image: url('{{ banner.image.url }}');">
+                    <div class="hero-overlay"></div>
+                    <div class="container">
+                        <div class="row align-items-center min-vh-50">
+                            <div class="col-lg-6">
+                                <div class="hero-content text-white">
+                                    <h1 class="display-4 fw-bold mb-3">{{ banner.title }}</h1>
+                                    {% if banner.subtitle %}
+                                    <p class="lead mb-4">{{ banner.subtitle }}</p>
+                                    {% endif %}
+                                    {% if banner.product %}
+                                    <a href="{% url 'product_detail' banner.product.slug %}" class="btn btn-primary btn-lg">
+                                        {{ banner.button_text }}
+                                    </a>
+                                    {% elif banner.button_url %}
+                                    <a href="{{ banner.button_url }}" class="btn btn-primary btn-lg">
+                                        {{ banner.button_text }}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+    {% else %}
+    <!-- Default Hero Section -->
+    <div class="hero-slide bg-primary">
+        <div class="container">
+            <div class="row align-items-center min-vh-50">
+                <div class="col-lg-6">
+                    <div class="hero-content text-white">
+                        <h1 class="display-4 fw-bold mb-3">Welcome to {{ site_settings.site_name|default:'E-Store' }}</h1>
+                        <p class="lead mb-4">Discover amazing products at unbeatable prices!</p>
+                        <a href="{% url 'products' %}" class="btn btn-light btn-lg">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Categories Section -->
+{% if categories %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold">Shop by Category</h2>
+                <p class="text-muted">Explore our wide range of product categories</p>
+            </div>
+        </div>
+        
+        <!-- Categories Carousel -->
+    <div id="categoriesCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000" data-bs-pause="hover" data-bs-touch="true" data-bs-keyboard="true">
+            <div class="carousel-inner">
+                <!-- First slide (categories 1-4 for mobile, 1-6 for desktop) -->
+                <div class="carousel-item active">
+                    <div class="d-none d-lg-block d-md-block">
+                        <div class="row g-4 flex-grow-1 justify-content-center">
+                            {% for category in categories|slice:"0:6" %}
+                            <div class="col-lg-2 col-md-4"><!-- desktop/tablet: 6 per row -->
+                                <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                    <div class="category-modern-card">
+                                        {% if category.image %}
+                                            {% if category.image and category.image.url %}
+                                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                            {% else %}
+                                                <div class="category-modern-icon">
+                                                    <i class="fas fa-cube fa-2x text-primary"></i>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="category-modern-icon">
+                                                <i class="fas fa-cube fa-2x text-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="category-modern-name">{{ category.name }}</div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="d-block d-lg-none d-md-none">
+                        <div class="row g-2">
+                            {% for category in categories|slice:"0:4" %}
+                            <div class="col-3">
+                                <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                    <div class="category-modern-card">
+                                        {% if category.image %}
+                                            {% if category.image and category.image.url %}
+                                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                            {% else %}
+                                                <div class="category-modern-icon">
+                                                    <i class="fas fa-cube fa-2x text-primary"></i>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="category-modern-icon">
+                                                <i class="fas fa-cube fa-2x text-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="category-modern-name">{{ category.name }}</div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% if categories|length > 4 %}
+                <div class="carousel-item">
+                    <div class="row g-4 flex-grow-1 justify-content-center">
+                        {% for category in categories|slice:"4:8" %}
+                        <div class="col-lg-2 col-md-4 col-3"><!-- 4 per row on mobile -->
+                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                <div class="category-modern-card">
+                                    {% if category.image %}
+                                        {% if category.image and category.image.url %}
+                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                        {% else %}
+                                            <div class="category-modern-icon">
+                                                <i class="fas fa-cube fa-2x text-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="category-modern-icon">
+                                            <i class="fas fa-cube fa-2x text-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="category-modern-name">{{ category.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if categories|length > 8 %}
+                <div class="carousel-item">
+                    <div class="row g-4 flex-grow-1 justify-content-center">
+                        {% for category in categories|slice:"8:12" %}
+                        <div class="col-lg-2 col-md-4 col-3"><!-- 4 per row on mobile -->
+                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                <div class="category-modern-card">
+                                    {% if category.image %}
+                                        {% if category.image and category.image.url %}
+                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                        {% else %}
+                                            <div class="category-modern-icon">
+                                                <i class="fas fa-cube fa-2x text-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="category-modern-icon">
+                                            <i class="fas fa-cube fa-2x text-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="category-modern-name">{{ category.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if categories|length > 12 %}
+                <div class="carousel-item">
+                    <div class="row g-4 flex-grow-1 justify-content-center">
+                        {% for category in categories|slice:"12:16" %}
+                        <div class="col-lg-2 col-md-4 col-sm-3 col-3"><!-- 4 per row on mobile -->
+                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                <div class="category-modern-card">
+                                    {% if category.image %}
+                                        {% if category.image and category.image.url %}
+                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                        {% else %}
+                                            <div class="category-modern-icon">
+                                                <i class="fas fa-cube fa-2x text-primary"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="category-modern-icon">
+                                            <i class="fas fa-cube fa-2x text-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="category-modern-name">{{ category.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Second slide (categories 7-12) if available -->
+                {% if categories|length > 6 %}
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        {% for category in categories|slice:"6:12" %}
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                <div class="category-modern-card">
+                                    {% if category.image %}
+                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                    {% else %}
+                                        <div class="category-modern-icon">
+                                            <i class="fas fa-cube fa-2x text-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="category-modern-name">{{ category.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Third slide (categories 13-18) if available -->
+                {% if categories|length > 12 %}
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        {% for category in categories|slice:"12:18" %}
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                <div class="category-modern-card">
+                                    {% if category.image %}
+                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                    {% else %}
+                                        <div class="category-modern-icon">
+                                            <i class="fas fa-cube fa-2x text-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="category-modern-name">{{ category.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Fourth slide (categories 19-24) if available -->
+                {% if categories|length > 18 %}
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        {% for category in categories|slice:"18:24" %}
+                        <div class="col-lg-2 col-md-4 col-sm-6">
+                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                                <div class="category-modern-card">
+                                    {% if category.image %}
+                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
+                                    {% else %}
+                                        <div class="category-modern-icon">
+                                            <i class="fas fa-cube fa-2x text-primary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="category-modern-name">{{ category.name }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Carousel Controls - Only show if more than 6 categories -->
+            {% if categories|length > 6 %}
+            <div class="d-flex justify-content-center mt-3">
+                <div class="carousel-indicators">
+                    <div class="carousel-indicators mb-2 mb-md-0">
+                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    {% if categories|length > 12 %}
+                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    {% endif %}
+                    {% if categories|length > 18 %}
+                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Best Sellers Section -->
+{% if best_sellers %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold">Best Sellers</h2>
+                <p class="text-muted">Our most popular products loved by customers</p>
+            </div>
+        </div>
+        
+        <!-- Best Sellers Carousel -->
+        <div id="bestSellersCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+            <div class="carousel-inner">
+                <!-- First slide (products 1-4) -->
+                <div class="carousel-item active">
+                    <div class="row g-4">
+                        {% for product in best_sellers|slice:":4" %}
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                                <div class="product-image-container position-relative">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                             onerror="this.src='/static/images/no-image.png';">
+                                    {% else %}
+                                        <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                                    {% endif %}
+                                    <div class="product-overlay">
+                                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View Details</span>
+                                        </a>
+                                    </div>
+                                    {% if product.is_best_seller %}
+                                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">Best Seller</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="p-3">
+                                    <h5 class="product-title mb-2">
+                                        <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                            {{ product.name }}
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="price-section">
+                                            {% if product.has_discount %}
+                                            <div class="d-flex flex-column">
+                                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                                <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if product.is_in_stock %}
+                                        <div class="d-flex gap-2">
+                                            <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="quantity" value="1">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
+                                                    <i class="fas fa-cart-plus"></i>
+                                                </button>
+                                            </form>
+                                            <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
+                                                <i class="fas fa-bolt"></i>
+                                            </a>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-danger small">Out of Stock</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Second slide (products 5-8) if available -->
+                {% if best_sellers|length > 4 %}
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        {% for product in best_sellers|slice:"4:8" %}
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                                <div class="product-image-container position-relative">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                             onerror="this.src='/static/images/no-image.png';">
+                                    {% else %}
+                                        <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                                    {% endif %}
+                                    <div class="product-overlay">
+                                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                    </div>
+                                    {% if product.is_best_seller %}
+                                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">Best Seller</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="p-3">
+                                    <h5 class="product-title mb-2">
+                                        <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                            {{ product.name }}
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="price-section">
+                                            {% if product.has_discount %}
+                                            <div class="d-flex flex-column">
+                                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                                <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if product.is_in_stock %}
+                                        <div class="d-flex gap-2">
+                                            <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="quantity" value="1">
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-cart-plus"></i>
+                                                </button>
+                                            </form>
+                                            <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-bolt"></i> Buy Now
+                                            </a>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-danger small">Out of Stock</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Third slide (products 9-12) if available -->
+                {% if best_sellers|length > 8 %}
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        {% for product in best_sellers|slice:"8:12" %}
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                                <div class="product-image-container position-relative">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                             onerror="this.src='/static/images/no-image.png';">
+                                    {% else %}
+                                        <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                                    {% endif %}
+                                    <div class="product-overlay">
+                                        <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View Details</span>
+                                        </a>
+                                    </div>
+                                    {% if product.is_best_seller %}
+                                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">Best Seller</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="p-3">
+                                    <h5 class="product-title mb-2">
+                                        <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                            {{ product.name }}
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="price-section">
+                                            {% if product.has_discount %}
+                                            <div class="d-flex flex-column">
+                                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                                <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if product.is_in_stock %}
+                                        {% if product.id in cart_product_ids %}
+                                        <button class="btn btn-success btn-sm" disabled title="Added to Cart">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% else %}
+                                        <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fas fa-cart-plus"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-danger small">Out of Stock</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Carousel Controls -->
+            {% if best_sellers|length > 4 %}
+            
+            <!-- Carousel Indicators -->
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#bestSellersCarousel" 
+                        data-bs-slide-to="0" class="active" aria-current="true"
+                        aria-label="Slide 1"></button>
+                {% if best_sellers|length > 4 %}
+                <button type="button" data-bs-target="#bestSellersCarousel" 
+                        data-bs-slide-to="1" aria-label="Slide 2"></button>
+                {% endif %}
+                {% if best_sellers|length > 8 %}
+                <button type="button" data-bs-target="#bestSellersCarousel" 
+                        data-bs-slide-to="2" aria-label="Slide 3"></button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products Section -->
+{% if featured_products %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold">Featured Products</h2>
+                <p class="text-muted">Handpicked products just for you</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in featured_products %}
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                    <div class="product-image-container position-relative">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                 onerror="this.src='/static/images/no-image.png';">
+                        {% else %}
+                            <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                        {% endif %}
+                        <div class="product-overlay">
+                            <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View Details</span>
+                            </a>
+                        </div>
+                        {% if product.is_featured %}
+                        <span class="badge bg-warning position-absolute top-0 start-0 m-2">Featured</span>
+                        {% endif %}
+                        {% if product.is_best_seller %}
+                        <span class="badge bg-danger position-absolute top-0 end-0 m-2">Best Seller</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-3">
+                        <h5 class="product-title mb-2">
+                            <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="price-section">
+                                            {% if product.has_discount %}
+                                            <div class="d-flex flex-column">
+                                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                                <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            {% endif %}
+                                        </div>
+                            {% if product.is_in_stock %}
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                                <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
+                                    <i class="fas fa-bolt"></i>
+                                </a>
+                            </div>
+                            {% else %}
+                            <span class="text-danger small">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- All Products Section -->
+{% if all_products %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold">All Products</h2>
+                <p class="text-muted">Discover our complete range of products</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in all_products %}
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                    <div class="product-image-container position-relative">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                 onerror="this.src='/static/images/no-image.png';">
+                        {% else %}
+                            <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                        {% endif %}
+                        <div class="product-overlay">
+                            <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View Details</span>
+                            </a>
+                        </div>
+                        {% if product.is_best_seller %}
+                        <span class="badge bg-danger position-absolute top-0 start-0 m-2">Best Seller</span>
+                        {% endif %}
+                        {% if product.is_featured %}
+                        <span class="badge bg-warning position-absolute top-0 end-0 m-2">Featured</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-3">
+                        <h5 class="product-title mb-2">
+                            <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="price-section">
+                                            {% if product.has_discount %}
+                                            <div class="d-flex flex-column">
+                                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                                <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            </div>
+                                            {% else %}
+                                            <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                            {% endif %}
+                                        </div>
+                            {% if product.is_in_stock %}
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                                <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
+                                    <i class="fas fa-bolt"></i>
+                                </a>
+                            </div>
+                            {% else %}
+                            <span class="text-danger small">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- View All Products Button -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="{% url 'products' %}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-th-large me-2"></i>View All Products
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize categories carousel
+    const categoriesCarousel = document.getElementById('categoriesCarousel');
+    if (categoriesCarousel) {
+        console.log('Initializing categories carousel...');
+        
+        // Force re-initialize Bootstrap carousel with auto-slide
+        const carousel = new bootstrap.Carousel(categoriesCarousel, {
+            interval: 5000, // Auto-slide every 5 seconds
+            wrap: true,     // Loop back to first slide after last
+            touch: true,    // Enable touch/swipe gestures
+            pause: 'hover'  // Pause on hover, resume when mouse leaves
+        });
+        
+        // Add manual navigation handlers
+        let prevBtn = null, nextBtn = null;
+        if (categoriesCarousel) {
+            prevBtn = categoriesCarousel.querySelector('.carousel-control-prev');
+            nextBtn = categoriesCarousel.querySelector('.carousel-control-next');
+        }
+        if (prevBtn && prevBtn.addEventListener) {
+            prevBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                carousel.prev();
+            });
+        }
+        if (nextBtn && nextBtn.addEventListener) {
+            nextBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                carousel.next();
+            });
+        }
+        
+        // Debug: Log carousel state
+        if (categoriesCarousel && categoriesCarousel.addEventListener) {
+            categoriesCarousel.addEventListener('slide.bs.carousel', function(e) {
+                console.log('Carousel sliding to:', e.to);
+            });
+            categoriesCarousel.addEventListener('slid.bs.carousel', function(e) {
+                console.log('Carousel slid to:', e.to);
+            });
+        }
+        
+        // Add auto-slide status indicator (optional)
+        let isPlaying = true;
+        
+        // Pause on mouse enter, resume on mouse leave
+        if (categoriesCarousel && categoriesCarousel.addEventListener) {
+            categoriesCarousel.addEventListener('mouseenter', function() {
+                if (isPlaying) {
+                    carousel.pause();
+                    console.log('Carousel paused on hover');
+                }
+            });
+            categoriesCarousel.addEventListener('mouseleave', function() {
+                if (isPlaying) {
+                    carousel.cycle();
+                    console.log('Carousel resumed');
+                }
+            });
+        }
+        
+        // Optional: Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (categoriesCarousel && categoriesCarousel.classList && document.activeElement.closest && document.activeElement.closest('#categoriesCarousel')) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    carousel.prev();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    carousel.next();
+                }
+            }
+        });
+    } else {
+        console.log('Categories carousel not found');
+    }
+});
+</script>
+{% endblock %}

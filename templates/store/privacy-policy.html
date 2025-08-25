@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">Privacy Policy</h1>
+                <p class="lead text-muted">Your privacy is important to us. Learn how we protect and use your information.</p>
+                <p class="small text-muted">Last updated: {{ "now"|date:"F d, Y" }}</p>
+            </div>
+
+            <!-- Introduction -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="h4 fw-bold text-primary mb-3">Our Commitment to Privacy</h2>
+                            <p class="text-muted mb-0">
+                                At {{ site_name }}, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                                This Privacy Policy explains how we collect, use, and safeguard your data when you use our services.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-shield-alt fa-4x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information We Collect -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Information We Collect</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body p-4">
+                                <h4 class="h5 fw-bold text-primary mb-3">
+                                    <i class="fas fa-user me-2"></i>Personal Information
+                                </h4>
+                                <ul class="text-muted small mb-0">
+                                    <li>Name and contact information</li>
+                                    <li>Email address and phone number</li>
+                                    <li>Billing and shipping addresses</li>
+                                    <li>Payment information (processed securely)</li>
+                                    <li>Account credentials</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body p-4">
+                                <h4 class="h5 fw-bold text-primary mb-3">
+                                    <i class="fas fa-chart-line me-2"></i>Usage Information
+                                </h4>
+                                <ul class="text-muted small mb-0">
+                                    <li>Website browsing behavior</li>
+                                    <li>Device and browser information</li>
+                                    <li>IP address and location data</li>
+                                    <li>Shopping cart and purchase history</li>
+                                    <li>Customer service interactions</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How We Use Information -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">How We Use Your Information</h2>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-shopping-cart text-white fa-2x"></i>
+                            </div>
+                            <h4 class="h6 fw-bold">Order Processing</h4>
+                            <p class="text-muted small">Process and fulfill your orders, handle payments, and provide customer support.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-envelope text-white fa-2x"></i>
+                            </div>
+                            <h4 class="h6 fw-bold">Communication</h4>
+                            <p class="text-muted small">Send order confirmations, shipping updates, and important account notifications.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-cogs text-white fa-2x"></i>
+                            </div>
+                            <h4 class="h6 fw-bold">Service Improvement</h4>
+                            <p class="text-muted small">Analyze usage patterns to improve our website, products, and customer experience.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Sharing -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Information Sharing and Disclosure</h2>
+                <div class="alert alert-info" role="alert">
+                    <h5 class="alert-heading fw-bold">
+                        <i class="fas fa-handshake me-2"></i>We do not sell your personal information
+                    </h5>
+                    <p class="mb-2">We may share your information only in the following circumstances:</p>
+                    <ul class="mb-0">
+                        <li><strong>Service Providers:</strong> Trusted third parties who help us operate our business (payment processors, shipping companies)</li>
+                        <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety</li>
+                        <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets</li>
+                        <li><strong>With Your Consent:</strong> When you explicitly agree to share your information</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Data Security -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Data Security</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4 text-center">
+                                <i class="fas fa-lock fa-3x text-success mb-3"></i>
+                                <h4 class="h5 fw-bold">Secure Encryption</h4>
+                                <p class="text-muted small">
+                                    We use industry-standard SSL encryption to protect your data during transmission 
+                                    and secure storage methods to safeguard your information.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-4 text-center">
+                                <i class="fas fa-users-cog fa-3x text-primary mb-3"></i>
+                                <h4 class="h5 fw-bold">Access Control</h4>
+                                <p class="text-muted small">
+                                    Only authorized personnel have access to your personal information, 
+                                    and we regularly review and update our security practices.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your Rights -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Your Privacy Rights</h2>
+                <div class="card border-0 bg-light">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold text-primary">
+                                    <i class="fas fa-eye me-2"></i>Access
+                                </h5>
+                                <p class="text-muted small mb-0">Request to see what personal information we have about you.</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold text-primary">
+                                    <i class="fas fa-edit me-2"></i>Correction
+                                </h5>
+                                <p class="text-muted small mb-0">Ask us to correct any inaccurate or incomplete information.</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold text-primary">
+                                    <i class="fas fa-trash me-2"></i>Deletion
+                                </h5>
+                                <p class="text-muted small mb-0">Request deletion of your personal information (subject to legal requirements).</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h5 class="fw-bold text-primary">
+                                    <i class="fas fa-ban me-2"></i>Opt-Out
+                                </h5>
+                                <p class="text-muted small mb-0">Unsubscribe from marketing communications at any time.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Retention -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Data Retention</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Information Type</th>
+                                <th>Retention Period</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Account Information</td>
+                                <td>Until account deletion</td>
+                                <td>Account management and customer service</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Order History</td>
+                                <td>7 years</td>
+                                <td>Legal compliance and customer service</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Payment Information</td>
+                                <td>Not stored (processed by payment provider)</td>
+                                <td>Transaction processing only</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Marketing Data</td>
+                                <td>Until opt-out or 3 years of inactivity</td>
+                                <td>Marketing communications</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Children's Privacy -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Children's Privacy</h2>
+                <div class="alert alert-warning" role="alert">
+                    <h5 class="alert-heading fw-bold">
+                        <i class="fas fa-child me-2"></i>Age Requirement
+                    </h5>
+                    <p class="mb-0">
+                        Our services are not intended for children under 13 years of age. We do not knowingly collect 
+                        personal information from children under 13. If you believe we have collected information from a child under 13, 
+                        please contact us immediately.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Changes to Policy -->
+            <div class="mb-5">
+                <h2 class="h4 fw-bold mb-4">Changes to This Privacy Policy</h2>
+                <div class="card border-0 bg-primary text-white">
+                    <div class="card-body p-4">
+                        <p class="mb-2">
+                            We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. 
+                            We will notify you of any material changes by posting the new Privacy Policy on this page.
+                        </p>
+                        <p class="mb-0">
+                            <strong>We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information.</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="text-center">
+                <h3 class="h4 fw-bold mb-3">Questions About Your Privacy?</h3>
+                <p class="text-muted mb-3">
+                    If you have any questions about this Privacy Policy or our data practices, please contact us.
+                </p>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <a href="{% url 'contact' %}" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

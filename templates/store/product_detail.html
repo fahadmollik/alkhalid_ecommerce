@@ -1,0 +1,549 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Product Images & Video -->
+        <div class="col-lg-6 mb-4">
+            <div class="product-gallery">
+                <!-- Media Viewer -->
+                <div class="main-viewer mb-3 position-relative">
+                    <!-- Product Image -->
+                    <div id="product-image" class="media-content">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                 class="product-detail-image img-fluid rounded shadow w-100"
+                                 style="height: 400px; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/600x400?text=No+Image';">
+                        {% else %}
+                            <img src="https://via.placeholder.com/600x400?text=No+Image" alt="{{ product.name }}" 
+                                 class="product-detail-image img-fluid rounded shadow w-100"
+                                 style="height: 400px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    
+                    <!-- YouTube Video -->
+                    {% if product.youtube_url %}
+                    <div id="product-video" class="media-content d-none">
+                        <div class="ratio ratio-16x9">
+                            <iframe src="{{ product.get_youtube_embed_url }}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    allowfullscreen
+                                    class="rounded shadow">
+                            </iframe>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Media Thumbnails -->
+                <div class="media-thumbnails">
+                    <div class="row g-2">
+                        <!-- Image Thumbnail -->
+                        <div class="col-6">
+                            <div class="thumbnail-wrapper position-relative">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                         class="img-fluid rounded shadow-sm w-100 media-thumb active"
+                                         style="height: 80px; object-fit: cover; cursor: pointer;"
+                                         data-media="image"
+                                         onclick="switchMedia('image')"
+                                         onerror="this.src='https://via.placeholder.com/150x100?text=No+Image';">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/150x100?text=No+Image" alt="{{ product.name }}" 
+                                         class="img-fluid rounded shadow-sm w-100 media-thumb active"
+                                         style="height: 80px; object-fit: cover; cursor: pointer;"
+                                         data-media="image"
+                                         onclick="switchMedia('image')">
+                                {% endif %}
+                                <div class="thumbnail-label">
+                                    <i class="fas fa-image me-1"></i>Image
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Video Thumbnail -->
+                        {% if product.youtube_url %}
+                        <div class="col-6">
+                            <div class="thumbnail-wrapper position-relative">
+                                <div class="video-thumb bg-danger d-flex align-items-center justify-content-center rounded shadow-sm w-100 media-thumb"
+                                     style="height: 80px; cursor: pointer;"
+                                     data-media="video"
+                                     onclick="switchMedia('video')">
+                                    <i class="fab fa-youtube text-white" style="font-size: 2rem;"></i>
+                                </div>
+                                <div class="thumbnail-label">
+                                    <i class="fas fa-play me-1"></i>Video
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Information -->
+        <div class="col-lg-6">
+            <div class="product-info">
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'products' %}">Products</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'category_products' product.category.slug %}">{{ product.category.name }}</a></li>
+                        <li class="breadcrumb-item active">{{ product.name }}</li>
+                    </ol>
+                </nav>
+                
+                <!-- Product Title -->
+                <h1 class="fw-bold mb-3">{{ product.name }}</h1>
+                
+                <!-- Removed duplicate quantity/add-to-cart block as per screenshot. -->
+                <!-- Category -->
+                <div class="mb-3">
+                    <span class="text-muted">Category: </span>
+                    <a href="{% url 'category_products' product.category.slug %}" 
+                       class="text-decoration-none text-primary">
+                        {{ product.category.name }}
+                    </a>
+                </div>
+                
+                <!-- Stock Information -->
+                <!-- Stock Information Removed -->
+                
+                <!-- Add to Cart Form -->
+                {% if product.is_in_stock %}
+                <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form mb-4">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="quantity" class="form-label">Quantity:</label>
+                        </div>
+                        <div class="col-auto">
+                            <div class="input-group" style="width: 140px;">
+                                <button type="button" class="btn btn-outline-secondary" onclick="decrementQuantity()">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" id="quantity" name="quantity" class="form-control text-center" 
+                                       value="1" min="1" max="{{ product.stock_quantity }}" 
+                                       oninput="updateQuantityDisplay(this.value)">
+                                <button type="button" class="btn btn-outline-secondary" onclick="incrementQuantity()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                                <button type="submit" class="btn btn-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
+                                    <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                                </button>
+                                <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
+                                    <i class="fas fa-bolt me-2"></i> Buy Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <button class="btn btn-secondary btn-lg mb-4" disabled>
+                    <i class="fas fa-times me-2"></i>Out of Stock
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Description -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Product Description</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ product.description|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">Related Products</h3>
+            <div class="row g-4">
+                {% for related_product in related_products %}
+                <div class="col-lg-3 col-md-6 col-6">
+                    <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
+                        <div class="product-image-container position-relative">
+                            <img src="{{ related_product.image.url }}" alt="{{ related_product.name }}" class="product-image">
+                            <div class="product-overlay">
+                                <a href="{% url 'product_detail' related_product.id %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View Details</span>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3">
+                            <h6 class="product-title mb-2">
+                                <a href="{% url 'product_detail' related_product.id %}" class="text-decoration-none text-dark">
+                                    {{ related_product.name }}
+                                </a>
+                            </h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="price-section">
+                                    {% if related_product.has_discount %}
+                                    <div class="d-flex flex-column">
+                                        <small class="text-muted text-decoration-line-through">৳{{ related_product.original_price }}</small>
+                                        <span class="price fw-bold text-primary">৳{{ related_product.price }}</span>
+                                    </div>
+                                    {% else %}
+                                    <span class="price fw-bold text-primary">৳{{ related_product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if related_product.is_in_stock %}
+                                <form method="post" action="{% url 'add_to_cart' related_product.id %}" class="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Alert function for notifications
+function showAlert(message, type = 'info') {
+    // Create alert element
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Add to body
+    document.body.appendChild(alertDiv);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+// Define quantity functions immediately
+function incrementQuantity() {
+    const input = document.getElementById('quantity');
+    
+    if (!input) {
+        return;
+    }
+    
+    const max = parseInt(input.max);
+    const current = parseInt(input.value);
+    
+    if (current < max) {
+        const newValue = current + 1;
+        input.value = newValue;
+        input.setAttribute('value', newValue); // Ensure attribute is updated
+        
+        // Force browser to recognize the change
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Update any quantity displays
+        updateQuantityDisplay(newValue);
+        
+        // Add visual feedback
+        input.style.backgroundColor = '#e8f5e8';
+        input.style.transition = 'background-color 0.2s';
+        setTimeout(() => { 
+            input.style.backgroundColor = ''; 
+            setTimeout(() => { input.style.transition = ''; }, 200);
+        }, 200);
+    } else {
+        showAlert(`Maximum quantity is ${max}`, 'warning');
+        // Visual feedback for max reached
+        input.style.backgroundColor = '#fee';
+        input.style.transition = 'background-color 0.2s';
+        setTimeout(() => { 
+            input.style.backgroundColor = ''; 
+            setTimeout(() => { input.style.transition = ''; }, 200);
+        }, 200);
+    }
+}
+
+function decrementQuantity() {
+    const input = document.getElementById('quantity');
+    
+    if (!input) {
+        return;
+    }
+    
+    const min = parseInt(input.min);
+    const current = parseInt(input.value);
+    
+    if (current > min) {
+        const newValue = current - 1;
+        input.value = newValue;
+        input.setAttribute('value', newValue); // Ensure attribute is updated
+        
+        // Force browser to recognize the change
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Update any quantity displays
+        updateQuantityDisplay(newValue);
+        
+        // Add visual feedback
+        input.style.backgroundColor = '#e8f5e8';
+        input.style.transition = 'background-color 0.2s';
+        setTimeout(() => { 
+            input.style.backgroundColor = ''; 
+            setTimeout(() => { input.style.transition = ''; }, 200);
+        }, 200);
+    } else {
+        // Visual feedback for min reached
+        input.style.backgroundColor = '#fee';
+        input.style.transition = 'background-color 0.2s';
+        setTimeout(() => { 
+            input.style.backgroundColor = ''; 
+            setTimeout(() => { input.style.transition = ''; }, 200);
+        }, 200);
+    }
+}
+
+// Function to update quantity displays throughout the page
+function updateQuantityDisplay(quantity) {
+    // Update any quantity badges or indicators
+    const quantityBadges = document.querySelectorAll('.quantity-display');
+    quantityBadges.forEach(badge => {
+        badge.textContent = quantity;
+    });
+    
+    // Update form input values to ensure consistency
+    const allQuantityInputs = document.querySelectorAll('input[name="quantity"]');
+    allQuantityInputs.forEach(inp => {
+        if (inp.id === 'quantity') {
+            inp.value = quantity;
+            inp.setAttribute('value', quantity);
+        }
+    });
+}
+
+// Make functions globally available immediately
+window.incrementQuantity = incrementQuantity;
+window.decrementQuantity = decrementQuantity;
+
+// Initialize quantity display when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('quantity');
+    
+    // Initialize quantity display
+    if (quantityInput) {
+        updateQuantityDisplay(quantityInput.value);
+        
+        // Add input event listener for manual typing
+        quantityInput.addEventListener('input', function() {
+            updateQuantityDisplay(this.value);
+        });
+    }
+});
+
+// Media switching functionality
+function switchMedia(mediaType) {
+    const imageContent = document.getElementById('product-image');
+    const videoContent = document.getElementById('product-video');
+    const thumbnails = document.querySelectorAll('.media-thumb');
+    
+    // Add smooth transition effect
+    const activeContent = document.querySelector('.media-content:not(.d-none)');
+    if (activeContent) {
+        activeContent.style.opacity = '0';
+        
+        setTimeout(() => {
+            // Hide all content
+            if (imageContent) imageContent.classList.add('d-none');
+            if (videoContent) videoContent.classList.add('d-none');
+            
+            // Remove active state from all thumbnails
+            thumbnails.forEach(thumb => thumb.classList.remove('active'));
+            
+            // Show selected content and activate thumbnail
+            let targetContent = null;
+            if (mediaType === 'image' && imageContent) {
+                imageContent.classList.remove('d-none');
+                document.querySelector('[data-media="image"]').classList.add('active');
+                targetContent = imageContent;
+            } else if (mediaType === 'video' && videoContent) {
+                videoContent.classList.remove('d-none');
+                document.querySelector('[data-media="video"]').classList.add('active');
+                targetContent = videoContent;
+            }
+            
+            // Fade in the new content
+            if (targetContent) {
+                setTimeout(() => {
+                    targetContent.style.opacity = '1';
+                }, 50);
+            }
+        }, 150);
+    } else {
+        // Initial load without animation
+        if (imageContent) imageContent.classList.add('d-none');
+        if (videoContent) videoContent.classList.add('d-none');
+        thumbnails.forEach(thumb => thumb.classList.remove('active'));
+        
+        if (mediaType === 'image' && imageContent) {
+            imageContent.classList.remove('d-none');
+            document.querySelector('[data-media="image"]').classList.add('active');
+        } else if (mediaType === 'video' && videoContent) {
+            videoContent.classList.remove('d-none');
+            document.querySelector('[data-media="video"]').classList.add('active');
+        }
+    }
+}
+
+// Make media switching function globally available
+window.switchMedia = switchMedia;
+
+// Gallery functionality (legacy support)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.image-thumbnails img').forEach(img => {
+        img.addEventListener('click', function() {
+            const mainImage = document.querySelector('.main-image img');
+            if (mainImage) {
+                mainImage.src = this.src;
+            }
+        });
+    });
+});
+</script>
+
+<style>
+/* Media Gallery Styles */
+.product-gallery .media-content {
+    min-height: 400px;
+    transition: all 0.3s ease;
+}
+
+.media-thumbnails .thumbnail-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.media-thumb {
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    position: relative;
+    cursor: pointer;
+}
+
+.media-thumb:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
+    border-color: rgba(13, 110, 253, 0.3);
+}
+
+.media-thumb.active {
+    border-color: #0d6efd;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3) !important;
+}
+
+.thumbnail-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+    color: white;
+    padding: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.media-thumb:hover .thumbnail-label {
+    background: linear-gradient(180deg, transparent 0%, rgba(13, 110, 253, 0.9) 100%);
+}
+
+.media-thumb.active .thumbnail-label {
+    background: linear-gradient(180deg, transparent 0%, rgba(13, 110, 253, 0.9) 100%);
+}
+
+.video-thumb {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.video-thumb:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
+    transform: translateY(-3px);
+}
+
+.video-thumb.active {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
+}
+
+/* Animation for media content switching */
+.media-content {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.media-content.d-none {
+    opacity: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .media-thumbnails .col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    
+    .thumbnail-label {
+        font-size: 0.7rem;
+        padding: 4px 6px;
+    }
+    
+    .product-gallery .media-content {
+        min-height: 300px;
+    }
+}
+
+/* Loading state for video */
+.video-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6c757d;
+}
+</style>
+
+{% endblock %}

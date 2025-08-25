@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Return & Refund Policy - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">Return & Refund Policy</h1>
+                <p class="lead text-muted">We want you to be completely satisfied with your purchase</p>
+            </div>
+
+            <!-- Policy Overview -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="h4 fw-bold mb-2">30-Day Return Policy</h3>
+                            <p class="text-muted mb-0">
+                                You have 30 days from the date of delivery to return any item for a full refund or exchange.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-undo-alt fa-4x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Conditions -->
+            <div class="mb-5">
+                <h2 class="h3 fw-bold mb-4">Return Conditions</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h4 class="h6 fw-bold">Original Condition</h4>
+                                <p class="text-muted small mb-0">Items must be in original, unused condition with all tags attached.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h4 class="h6 fw-bold">Original Packaging</h4>
+                                <p class="text-muted small mb-0">Items must be returned in original packaging and containers.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h4 class="h6 fw-bold">Proof of Purchase</h4>
+                                <p class="text-muted small mb-0">Valid receipt or order confirmation required for all returns.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                            <div>
+                                <h4 class="h6 fw-bold">Return Authorization</h4>
+                                <p class="text-muted small mb-0">Contact customer service to obtain a return authorization number.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How to Return -->
+            <div class="mb-5">
+                <h2 class="h3 fw-bold mb-4">How to Return an Item</h2>
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="text-center">
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="text-white fw-bold">1</span>
+                            </div>
+                            <h4 class="h6 fw-bold">Contact Us</h4>
+                            <p class="text-muted small">Email us or call our customer service team to initiate the return process.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="text-center">
+                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="text-white fw-bold">2</span>
+                            </div>
+                            <h4 class="h6 fw-bold">Get Authorization</h4>
+                            <p class="text-muted small">Receive your return authorization number and shipping instructions.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="text-center">
+                            <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="text-white fw-bold">3</span>
+                            </div>
+                            <h4 class="h6 fw-bold">Package Item</h4>
+                            <p class="text-muted small">Securely package the item in its original packaging with all accessories.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="text-center">
+                            <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <span class="text-white fw-bold">4</span>
+                            </div>
+                            <h4 class="h6 fw-bold">Ship Back</h4>
+                            <p class="text-muted small">Send the package using the provided shipping label and tracking information.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refund Information -->
+            <div class="mb-5">
+                <h2 class="h3 fw-bold mb-4">Refund Processing</h2>
+                <div class="card border-0 bg-light">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h4 class="h6 fw-bold text-primary">Processing Time</h4>
+                                <p class="text-muted mb-0">Refunds are processed within 3-5 business days after we receive your returned item.</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h4 class="h6 fw-bold text-primary">Refund Method</h4>
+                                <p class="text-muted mb-0">Refunds will be issued to the original payment method used for the purchase.</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h4 class="h6 fw-bold text-primary">Shipping Costs</h4>
+                                <p class="text-muted mb-0">Original shipping charges are non-refundable unless the return is due to our error.</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h4 class="h6 fw-bold text-primary">Return Shipping</h4>
+                                <p class="text-muted mb-0">Customer is responsible for return shipping costs unless the item is defective.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Non-Returnable Items -->
+            <div class="mb-5">
+                <h2 class="h3 fw-bold mb-4">Non-Returnable Items</h2>
+                <div class="alert alert-warning" role="alert">
+                    <h4 class="alert-heading fw-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Please Note
+                    </h4>
+                    <p class="mb-2">The following items cannot be returned for health and safety reasons:</p>
+                    <ul class="mb-0">
+                        <li>Perishable goods and food items</li>
+                        <li>Personal care and hygiene products</li>
+                        <li>Custom or personalized items</li>
+                        <li>Digital downloads and software</li>
+                        <li>Gift cards and promotional items</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contact for Returns -->
+            <div class="bg-primary text-white rounded p-4 text-center">
+                <h3 class="h4 fw-bold mb-3">Need Help with a Return?</h3>
+                <p class="mb-3">Our customer service team is here to assist you with your return or exchange.</p>
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <a href="{% url 'contact' %}" class="btn btn-light btn-lg w-100 mb-2">
+                            <i class="fas fa-envelope me-2"></i>Contact Customer Service
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

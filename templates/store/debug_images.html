@@ -1,0 +1,33 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Image Debug{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Image Debug Information</h1>
+    
+    {% for info in debug_info %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ info.name }}</h5>
+            <p><strong>Image Field:</strong> {{ info.image_field }}</p>
+            <p><strong>Image URL:</strong> {{ info.image_url }}</p>
+            <p><strong>Has Image:</strong> {{ info.has_image }}</p>
+            {% if info.full_path %}
+            <p><strong>Full Path:</strong> {{ info.full_path }}</p>
+            <p><strong>File Exists:</strong> {{ info.file_exists }}</p>
+            {% endif %}
+            
+            {% if info.has_image %}
+            <div class="mt-3">
+                <p><strong>Actual Image:</strong></p>
+                <img src="{{ info.image_url }}" alt="{{ info.name }}" 
+                     style="max-width: 200px; border: 1px solid #ccc;"
+                     onerror="this.style.border='2px solid red'; this.alt='Image failed to load';">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

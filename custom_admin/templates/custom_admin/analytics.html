@@ -1,0 +1,402 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Analytics & Reports</h1>
+            <p class="text-muted">Business intelligence and performance metrics</p>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <a href="{% url 'custom_admin:analytics' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ total_orders }}</h4>
+                    <small>Total Orders</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-receipt" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">৳{{ total_revenue|floatformat:2 }}</h4>
+                    <small>Total Revenue</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-currency-dollar" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card warning">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">৳{{ average_order_value|floatformat:2 }}</h4>
+                    <small>Avg Order Value</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-graph-up" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card info">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ best_selling.count }}</h4>
+                    <small>Products Sold</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-box" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Visit Metrics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ today_visits }}</h4>
+                    <small>Today's Visits</small>
+                    {% if yesterday_visits > 0 %}
+                        <div class="mt-1">
+                            {% if visit_change > 0 %}
+                                <small class="text-light"><i class="bi bi-arrow-up"></i> +{{ visit_change }} from yesterday</small>
+                            {% elif visit_change < 0 %}
+                                <small class="text-light"><i class="bi bi-arrow-down"></i> {{ visit_change }} from yesterday</small>
+                            {% else %}
+                                <small class="text-light">Same as yesterday</small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-people" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ current_online }}</h4>
+                    <small>Currently Online</small>
+                    <div class="mt-1">
+                        <small class="text-light">Active in last 5 minutes</small>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-wifi" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ month_visits }}</h4>
+                    <small>This Month</small>
+                    <div class="mt-1">
+                        <small class="text-light">Total visits</small>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-calendar-month" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ yesterday_visits }}</h4>
+                    <small>Yesterday</small>
+                    <div class="mt-1">
+                        <small class="text-dark">Previous day visits</small>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-clock-history" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Daily Sales Chart -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Daily Sales Trend</h5>
+            </div>
+            <div class="card-body">
+                {% if daily_sales %}
+                    <canvas id="dailySalesChart" height="300"></canvas>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-graph-up text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No sales data for selected period</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Visits Chart -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-people"></i> Daily Visits (Last 7 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyVisitsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Best Selling Products -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-trophy"></i> Best Sellers</h5>
+            </div>
+            <div class="card-body">
+                {% if best_selling %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Sold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in best_selling %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ product.name|truncatechars:25 }}</strong>
+                                            <br><small class="text-muted">৳{{ product.price }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ product.total_sold|default:0 }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted">No sales data</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Revenue -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> Revenue by Category</h5>
+            </div>
+            <div class="card-body">
+                {% if category_revenue %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Revenue</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in category_revenue %}
+                                    {% if category.revenue %}
+                                        <tr>
+                                            <td>{{ category.name }}</td>
+                                            <td><strong>৳{{ category.revenue|floatformat:2 }}</strong></td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: {{ category.percentage }}%">
+                                                        {{ category.percentage|floatformat:1 }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-pie-chart text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted">No category revenue data</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if daily_sales %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Daily Sales Chart
+    const ctx = document.getElementById('dailySalesChart').getContext('2d');
+    const salesData = {{ daily_sales|safe }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: salesData.map(item => item.date),
+            datasets: [{
+                label: 'Daily Revenue ($)',
+                data: salesData.map(item => item.revenue),
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Daily Visits Chart
+    const visitsCtx = document.getElementById('dailyVisitsChart').getContext('2d');
+    const visitsData = {{ daily_visits|safe }};
+    
+    new Chart(visitsCtx, {
+        type: 'bar',
+        data: {
+            labels: visitsData.map(item => {
+                const date = new Date(item.date);
+                return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            }),
+            datasets: [{
+                label: 'Daily Visits',
+                data: visitsData.map(item => item.visits),
+                backgroundColor: [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(118, 75, 162, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 205, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(102, 126, 234, 1)',
+                    'rgba(118, 75, 162, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 205, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

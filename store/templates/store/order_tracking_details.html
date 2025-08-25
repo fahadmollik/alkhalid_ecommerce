@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Tracking - {{ order.order_id }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Back Button -->
+            <div class="mb-4">
+                <a href="{% url 'track_order' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back to Tracking
+                </a>
+            </div>
+
+            <!-- Order Header -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h4 class="mb-0">
+                                <i class="bi bi-package"></i>
+                                Order {{ order.order_id }}
+                            </h4>
+                            <small>Tracking Number: {{ order.tracking_number }}</small>
+                        </div>
+                        <div class="col-auto">
+                            {% with status_info=order.get_status_display_with_icon %}
+                                <span class="badge bg-light text-dark fs-6">
+                                    <i class="bi {{ status_info.icon }}"></i>
+                                    {{ status_info.status }}
+                                </span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">Order Date</h6>
+                            <p class="mb-0">{{ order.created_at|date:"M d, Y g:i A" }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">Customer</h6>
+                            <p class="mb-0">{{ order.customer_name }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-2">Total Amount</h6>
+                            <p class="mb-0 fw-bold">৳{{ order.total_amount }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Tracking Timeline -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clock-history"></i>
+                                Tracking Timeline
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                {% for step in timeline %}
+                                    <div class="timeline-item {% if step.current %}current{% elif step.completed %}completed{% endif %}">
+                                        <div class="timeline-marker">
+                                            <i class="bi {{ step.icon }}"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h6 class="mb-1">{{ step.display }}</h6>
+                                            {% if step.date %}
+                                                <small class="text-muted">{{ step.date|date:"M d, Y g:i A" }}</small>
+                                            {% elif step.completed %}
+                                                <small class="text-muted">Completed</small>
+                                            {% else %}
+                                                <small class="text-muted">Pending</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status History -->
+                    {% if status_history %}
+                        <div class="card shadow-sm mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-list-ul"></i>
+                                    Status History
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date & Time</th>
+                                                <th>Status</th>
+                                                <th>Notes</th>
+                                                <th>Updated By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for history in status_history %}
+                                                <tr>
+                                                    <td>{{ history.created_at|date:"M d, Y g:i A" }}</td>
+                                                    <td>
+                                                        <span class="badge bg-primary">
+                                                            {{ history.get_status_display }}
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ history.notes|default:"—" }}</td>
+                                                    <td>{{ history.created_by }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Order Details Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Order Items -->
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-box-seam"></i>
+                                Order Items ({{ order.items.count }})
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% for item in order.items.all %}
+                                <div class="d-flex align-items-center mb-3">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" 
+                                             alt="{{ item.product.name }}" 
+                                             class="rounded me-3"
+                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center"
+                                             style="width: 50px; height: 50px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 small">{{ item.product.name|truncatechars:30 }}</h6>
+                                        <small class="text-muted">Qty: {{ item.quantity }} × ৳{{ item.price }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <strong>৳{{ order.subtotal }}</strong>
+                            </div>
+                            {% if order.delivery_fee > 0 %}
+                                <div class="d-flex justify-content-between">
+                                    <span>Delivery:</span>
+                                    <span>৳{{ order.delivery_fee }}</span>
+                                </div>
+                            {% endif %}
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total:</strong>
+                                <strong>৳{{ order.total_amount }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="bi bi-truck"></i>
+                                Shipping Information
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="text-muted mb-2">Delivery Address</h6>
+                            <div class="bg-light p-3 rounded mb-3">
+                                {{ order.shipping_address|linebreaks }}
+                            </div>
+                            
+                            {% if order.delivery_option %}
+                                <h6 class="text-muted mb-2">Delivery Option</h6>
+                                <p class="mb-2">{{ order.delivery_option.name }}</p>
+                                <small class="text-muted">{{ order.delivery_option.description }}</small>
+                            {% endif %}
+                            
+                            {% if order.estimated_delivery %}
+                                <h6 class="text-muted mb-2 mt-3">Estimated Delivery</h6>
+                                <p class="mb-0">{{ order.estimated_delivery|date:"M d, Y" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Contact Support -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Need Help?</h6>
+                            <p class="card-text small text-muted">
+                                Have questions about your order?
+                            </p>
+                            <a href="{% url 'contact' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-headset"></i>
+                                Contact Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding: 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 80px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 15px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9ecef;
+    border: 3px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.timeline-item.completed .timeline-marker {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.timeline-item.current .timeline-marker {
+    background: #cce5ff;
+    border-color: #007bff;
+    color: #004085;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+.timeline-item.completed .timeline-content h6 {
+    color: #28a745;
+}
+
+.timeline-item.current .timeline-content h6 {
+    color: #007bff;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

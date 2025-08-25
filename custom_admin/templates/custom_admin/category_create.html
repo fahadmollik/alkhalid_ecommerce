@@ -1,0 +1,87 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Create Category{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Create New Category</h1>
+            <p class="text-muted">Add a new product category to organize your inventory</p>
+        </div>
+        <div>
+            <a href="{% url 'custom_admin:category_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Categories
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-plus-circle"></i> Category Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Category Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <div class="form-text">URL slug will be automatically generated from the category name</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" 
+                                  placeholder="Enter a description for this category (optional)"></textarea>
+                        <div class="form-text">Provide a brief description of what products belong in this category</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Category Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <div class="form-text">Upload an image to represent this category (JPG, PNG, etc.)</div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Create Category
+                        </button>
+                        <a href="{% url 'custom_admin:category_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Help Tips -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0"><i class="bi bi-lightbulb"></i> Tips for Creating Categories</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>Clear Names:</strong> Use descriptive names that customers will understand
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>SEO Friendly:</strong> URL slugs are automatically generated for search engine optimization
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>High-Quality Images:</strong> Use clear, professional images to represent your category
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>Organize Products:</strong> Group related products together for better user experience
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,568 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart - E-Commerce Store{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="fw-bold mb-4">
+                <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+            </h2>
+        </div>
+    </div>
+    
+    {% if cart_items %}
+    <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Cart Items ({{ cart_items.count }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for item in cart_items %}
+                    <div class="cart-item p-3 {% if not forloop.last %}border-bottom{% endif %}" data-item-id="{{ item.id }}">
+                        <div class="row align-items-center">
+                            <div class="col-md-2 col-4 mb-2 mb-md-0">
+                                {% if item.product.image and item.product.image.url %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-image img-fluid rounded">
+                                {% else %}
+                                    <div class="cart-image-placeholder d-flex align-items-center justify-content-center bg-light rounded" style="width: 100%; height: 70px;">
+                                        <i class="fas fa-box-open fa-2x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 col-8 mb-2 mb-md-0">
+                                <h6 class="fw-bold mb-1">
+                                    <a href="{% url 'product_detail' item.product.slug %}" 
+                                       class="text-decoration-none text-dark">
+                                        {{ item.product.name }}
+                                    </a>
+                                </h6>
+                                <p class="text-muted small mb-1 d-none d-sm-block">{{ item.product.category.name }}</p>
+                                <div class="price-display">
+                                    {% if item.product.has_discount %}
+                                    <span class="text-muted text-decoration-line-through me-2 small">৳{{ item.product.original_price }}</span>
+                                    <span class="text-primary fw-bold item-unit-price" data-price="{{ item.product.price }}">৳{{ item.product.price }}</span>
+                                    {% else %}
+                                    <span class="text-primary fw-bold item-unit-price" data-price="{{ item.product.price }}">৳{{ item.product.price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 col-6 mb-2 mb-md-0">
+                                <div class="quantity-controls">
+                                    <div class="input-group input-group-sm">
+                                        <button type="button" class="btn btn-outline-secondary quantity-btn" 
+                                                data-action="decrease" data-item-id="{{ item.id }}">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               value="{{ item.quantity }}" 
+                                               min="1" max="{{ item.product.stock_quantity }}"
+                                               class="form-control quantity-input text-center"
+                                               data-item-id="{{ item.id }}"
+                                               data-price="{{ item.product.price }}"
+                                               data-update-url="{% url 'update_cart' item.id %}">
+                                        <button type="button" class="btn btn-outline-secondary quantity-btn" 
+                                                data-action="increase" data-item-id="{{ item.id }}" 
+                                                data-max="{{ item.product.stock_quantity }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-1">Max: {{ item.product.stock_quantity }}</small>
+                            </div>
+                            
+                            <div class="col-md-3 col-6 text-center text-md-center">
+                                <p class="fw-bold text-primary mb-2 item-total" data-item-id="{{ item.id }}">৳{{ item.total_price }}</p>
+                                <button class="btn btn-outline-danger btn-sm remove-item-btn" 
+                                        data-item-id="{{ item.id }}"
+                                        data-remove-url="{% url 'remove_from_cart' item.id %}">
+                                    <i class="fas fa-trash"></i> <span class="d-none d-md-inline">Remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Continue Shopping -->
+            <div class="mt-3">
+                <a href="{% url 'products' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+        
+        <!-- Cart Summary -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="card position-sticky" style="top: 20px;">
+                <div class="card-header">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Subtotal (<span id="cart-item-count">{{ cart_items.count }}</span> item<span id="cart-plural">{{ cart_items.count|pluralize }}</span>):</span>
+                        <span class="fw-bold" id="cart-subtotal">৳{{ total }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="fw-bold fs-5">Total:</span>
+                        <span class="fw-bold fs-5 text-primary" id="cart-total">৳{{ total }}</span>
+                    </div>
+                    
+                    <a href="{% url 'checkout' %}" class="btn btn-primary w-100 mb-3" id="checkout-btn">
+                        <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-shopping-cart fa-4x text-muted"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Your cart is empty</h3>
+            <p class="text-muted mb-4">Looks like you haven't added any items to your cart yet.</p>
+            <a href="{% url 'products' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recommended Products (if cart is not empty) -->
+{% if cart_items %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h3 class="fw-bold">You might also like</h3>
+                <p class="text-muted">Based on items in your cart</p>
+            </div>
+        </div>
+        
+        <!-- This would typically show related products -->
+        <div class="row g-4">
+            <div class="col-12 text-center">
+                <p class="text-muted">Recommended products will appear here based on your cart items.</p>
+                <a href="{% url 'products' %}" class="btn btn-outline-primary">
+                    Browse All Products
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Alert function for notifications
+function showAlert(message, type = 'info') {
+    // Create alert element
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Add to body
+    document.body.appendChild(alertDiv);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 3000);
+}
+
+// Dynamic Cart Functionality
+class DynamicCart {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.updateCartSummary();
+        // Store original values for error recovery
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.dataset.originalValue = input.value;
+        });
+    }
+
+    bindEvents() {
+        // Quantity button events
+        document.querySelectorAll('.quantity-btn').forEach(btn => {
+            btn.addEventListener('click', this.handleQuantityChange.bind(this));
+        });
+
+        // Direct quantity input events
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            // Real-time price update on input
+            input.addEventListener('input', this.handleRealTimeUpdate.bind(this));
+            // Final update on change/blur
+            input.addEventListener('change', this.handleDirectQuantityChange.bind(this));
+            input.addEventListener('blur', this.handleDirectQuantityChange.bind(this));
+        });
+
+        // Remove item events
+        document.querySelectorAll('.remove-item-btn').forEach(btn => {
+            btn.addEventListener('click', this.handleRemoveItem.bind(this));
+        });
+    }
+
+    handleRealTimeUpdate(e) {
+        const input = e.target;
+        const quantity = parseInt(input.value) || 0;
+        const price = parseFloat(input.dataset.price);
+        const itemId = input.dataset.itemId;
+        
+        // Update individual item price immediately
+        const itemTotal = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
+        if (itemTotal && quantity > 0) {
+            const newTotal = (quantity * price).toFixed(2);
+            itemTotal.textContent = `৳${newTotal}`;
+        }
+        
+        // Update cart summary immediately
+        this.updateCartSummary();
+    }
+
+    handleQuantityChange(e) {
+        const button = e.target.closest('.quantity-btn');
+        const action = button.dataset.action;
+        const itemId = button.dataset.itemId;
+        const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+        
+        let newQuantity = parseInt(input.value);
+        
+        if (action === 'increase') {
+            const max = parseInt(button.dataset.max);
+            if (newQuantity < max) {
+                newQuantity++;
+                input.value = newQuantity;
+                
+                // Immediate price update
+                this.updateItemPriceDisplay(itemId, newQuantity);
+                this.updateCartSummary();
+                
+                // Server sync with debounce
+                this.debounceServerUpdate(itemId, newQuantity);
+            } else {
+                showAlert(`Maximum quantity is ${max}`, 'warning');
+            }
+        } else if (action === 'decrease') {
+            if (newQuantity > 1) {
+                newQuantity--;
+                input.value = newQuantity;
+                
+                // Immediate price update
+                this.updateItemPriceDisplay(itemId, newQuantity);
+                this.updateCartSummary();
+                
+                // Server sync with debounce
+                this.debounceServerUpdate(itemId, newQuantity);
+            }
+        }
+    }
+
+    updateItemPriceDisplay(itemId, quantity) {
+        const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+        const price = parseFloat(input.dataset.price);
+        const itemTotal = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
+        
+        if (itemTotal) {
+            const newTotal = (quantity * price).toFixed(2);
+            itemTotal.textContent = `৳${newTotal}`;
+            
+            // Add brief animation
+            itemTotal.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                itemTotal.style.transform = 'scale(1)';
+            }, 150);
+        }
+    }
+
+    debounceServerUpdate(itemId, quantity) {
+        // Clear any existing timeout for this item
+        if (this.updateTimeouts && this.updateTimeouts[itemId]) {
+            clearTimeout(this.updateTimeouts[itemId]);
+        }
+        
+        if (!this.updateTimeouts) {
+            this.updateTimeouts = {};
+        }
+        
+        // Set new timeout for server update
+        this.updateTimeouts[itemId] = setTimeout(() => {
+            this.updateItemQuantity(itemId, quantity);
+        }, 800); // Wait 800ms after last change
+    }
+
+    handleDirectQuantityChange(e) {
+        const input = e.target;
+        const itemId = input.dataset.itemId;
+        const quantity = parseInt(input.value);
+        const max = parseInt(input.max);
+        
+        if (quantity > max) {
+            input.value = max;
+            showAlert(`Maximum quantity is ${max}`, 'warning');
+            this.updateItemPriceDisplay(itemId, max);
+            this.updateCartSummary();
+            this.debounceServerUpdate(itemId, max);
+        } else if (quantity < 1) {
+            input.value = 1;
+            this.updateItemPriceDisplay(itemId, 1);
+            this.updateCartSummary();
+            this.debounceServerUpdate(itemId, 1);
+        } else {
+            this.updateItemPriceDisplay(itemId, quantity);
+            this.updateCartSummary();
+            this.debounceServerUpdate(itemId, quantity);
+        }
+    }
+
+    handleRemoveItem(e) {
+        const button = e.target.closest('.remove-item-btn');
+        const itemId = button.dataset.itemId;
+        
+        if (confirm('Remove this item from cart?')) {
+            this.removeItem(itemId);
+        }
+    }
+
+    updateItemQuantity(itemId, quantity) {
+        // Show loading state
+        const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
+        const itemTotal = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
+        const quantityInput = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+        const updateUrl = quantityInput.dataset.updateUrl;
+        const unitPrice = parseFloat(quantityInput.dataset.price);
+        
+        // Update price immediately for instant feedback
+        const newItemTotal = (quantity * unitPrice).toFixed(2);
+        itemTotal.textContent = `৳${newItemTotal}`;
+        itemTotal.classList.add('updating');
+        
+        cartItem.style.opacity = '0.7';
+        
+        console.log('Updating item:', itemId, 'to quantity:', quantity);
+        console.log('Update URL:', updateUrl);
+        
+        // Make AJAX request to update quantity
+        fetch(updateUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': this.getCSRFToken(),
+            },
+            body: JSON.stringify({
+                quantity: quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Confirm the price update from server
+                itemTotal.textContent = `৳${data.item_total}`;
+                
+                // Update cart summary immediately
+                this.updateCartSummary();
+                
+                // Remove loading state
+                cartItem.style.opacity = '1';
+                itemTotal.classList.remove('updating');
+                
+                // Show success message
+                showAlert('Cart updated successfully', 'success');
+            } else {
+                // Revert price on error
+                const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+                const originalQuantity = parseInt(input.dataset.originalValue || input.value);
+                const revertTotal = (originalQuantity * unitPrice).toFixed(2);
+                itemTotal.textContent = `৳${revertTotal}`;
+                
+                showAlert(data.message || 'Error updating cart', 'error');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error updating cart', 'error');
+            location.reload();
+        });
+    }
+
+    removeItem(itemId) {
+        // Show loading state
+        const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
+        const removeButton = cartItem.querySelector('.remove-item-btn');
+        const removeUrl = removeButton.dataset.removeUrl;
+        
+        cartItem.style.opacity = '0.5';
+        
+        console.log('Removing item:', itemId);
+        console.log('Remove URL:', removeUrl);
+        console.log('CSRF Token:', this.getCSRFToken());
+        
+        // Make AJAX request to remove item
+        fetch(removeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': this.getCSRFToken(),
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Remove response:', data);
+            if (data.success) {
+                // Remove item from DOM
+                cartItem.remove();
+                
+                // Update cart summary
+                this.updateCartSummary();
+                
+                // Show success message
+                showAlert('Item removed from cart', 'success');
+                
+                // Check if cart is empty
+                if (data.cart_empty) {
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                }
+            } else {
+                showAlert(data.message || 'Error removing item', 'error');
+                cartItem.style.opacity = '1';
+            }
+        })
+        .catch(error => {
+            console.error('Remove item error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            showAlert('Error removing item. Please try again.', 'error');
+            cartItem.style.opacity = '1';
+        });
+    }
+
+    updateCartSummary() {
+        // Calculate totals from current DOM state
+        let totalItems = 0;
+        let totalPrice = 0;
+        
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            const quantity = parseInt(input.value);
+            const price = parseFloat(input.dataset.price);
+            const itemId = input.dataset.itemId;
+            
+            // Update individual item total
+            const itemTotal = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
+            const itemTotalPrice = (quantity * price).toFixed(2);
+            if (itemTotal) {
+                itemTotal.textContent = `৳${itemTotalPrice}`;
+            }
+            
+            totalItems += quantity;
+            totalPrice += quantity * price;
+        });
+        
+        // Add animation to totals
+        const subtotalElement = document.getElementById('cart-subtotal');
+        const totalElement = document.getElementById('cart-total');
+        
+            if (subtotalElement) {
+                subtotalElement.classList.add('updating');
+                subtotalElement.textContent = `৳${totalPrice.toFixed(2)}`;
+            }
+            if (totalElement) {
+                totalElement.classList.add('updating');
+                totalElement.textContent = `৳${totalPrice.toFixed(2)}`;
+            }
+            const itemCountEl = document.getElementById('cart-item-count');
+            if (itemCountEl) itemCountEl.textContent = totalItems;
+            const pluralEl = document.getElementById('cart-plural');
+            if (pluralEl) pluralEl.textContent = totalItems !== 1 ? 's' : '';
+        
+            // Remove animation after brief delay
+            setTimeout(() => {
+                if (subtotalElement) subtotalElement.classList.remove('updating');
+                if (totalElement) totalElement.classList.remove('updating');
+            }, 300);
+        
+        // Update header cart count if exists
+        const headerCartCount = document.querySelector('.badge');
+        if (headerCartCount && totalItems > 0) {
+            headerCartCount.textContent = totalItems;
+            headerCartCount.style.display = 'inline';
+        } else if (headerCartCount) {
+            headerCartCount.style.display = 'none';
+        }
+        
+        // Update checkout button state
+        const checkoutBtn = document.getElementById('checkout-btn');
+        if (checkoutBtn) {
+            if (totalItems === 0) {
+                checkoutBtn.classList.add('disabled');
+                checkoutBtn.style.pointerEvents = 'none';
+            } else {
+                checkoutBtn.classList.remove('disabled');
+                checkoutBtn.style.pointerEvents = 'auto';
+            }
+        }
+    }
+
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+               document.querySelector('input[name="csrfmiddlewaretoken"]')?.value ||
+               '';
+    }
+}
+
+// Initialize dynamic cart when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    new DynamicCart();
+});
+
+// Legacy functions for compatibility (if needed elsewhere)
+function incrementQuantity(button) {
+    // This is now handled by the DynamicCart class
+    console.log('Using legacy increment function - consider updating to new dynamic cart');
+}
+
+function decrementQuantity(button) {
+    // This is now handled by the DynamicCart class
+    console.log('Using legacy decrement function - consider updating to new dynamic cart');
+}
+</script>
+{% endblock %}

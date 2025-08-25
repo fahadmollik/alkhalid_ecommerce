@@ -1,0 +1,515 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="fw-bold mb-4">
+                <i class="fas fa-credit-card me-2"></i>Checkout
+            </h2>
+            
+            <!-- Progress Steps -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="progress-steps d-flex justify-content-between flex-wrap">
+                        <div class="step completed">
+                            <div class="step-circle bg-success text-white">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <span class="step-label">Cart</span>
+                        </div>
+                        <div class="step active">
+                            <div class="step-circle bg-primary text-white">2</div>
+                            <span class="step-label">Checkout</span>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle bg-secondary text-white">3</div>
+                            <span class="step-label">Confirmation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" class="needs-loading">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Customer Information -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Customer Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="customer_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="customer_name" 
+                                       name="customer_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="customer_phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="customer_phone" 
+                                       name="customer_phone" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customer_email" class="form-label">Email Address (Optional)</label>
+                            <input type="email" class="form-control" id="customer_email" 
+                                   name="customer_email">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shipping_address" class="form-label">Complete Address *</label>
+                            <textarea class="form-control" id="shipping_address" name="shipping_address" 
+                                      rows="4" required placeholder="Enter your complete address including street, city, state, and postal code"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">
+                                Additional Notes (Optional)
+                            </label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Any special instructions for delivery..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-truck me-2"></i>Select area <span class="text-danger">*</span>
+                            </label>
+                            {% if delivery_options %}
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% for option in delivery_options %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="delivery_option" 
+                                               id="delivery_{{ option.id }}" value="{{ option.id }}" 
+                                               {% if forloop.first %}checked{% endif %} required
+                                               data-price="{{ option.price }}">
+                                        <label class="form-check-label" for="delivery_{{ option.id }}">
+                                            {{ option.name }} (৳{{ option.price }})
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    No delivery options available at the moment. Please contact support.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card position-sticky" style="top: 20px;">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Order Items -->
+                        <div class="order-items mb-3">
+                            {% for item in cart_items %}
+                            <div class="order-summary-item d-flex justify-content-between align-items-center py-2 flex-wrap">
+                                <div class="d-flex align-items-center flex-grow-1 mb-2 mb-sm-0">
+                             <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" alt="{{ item.product.name }}" 
+                                 class="rounded me-2 flex-shrink-0" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div class="flex-grow-1">
+                                        <small class="fw-bold d-block">{{ item.product.name }}</small>
+                                        <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-primary">৳{{ item.total_price }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Pricing Breakdown -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span id="subtotal-amount">৳{{ subtotal }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Delivery:</span>
+                            <span id="delivery-fee" class="text-primary">
+                                {% if delivery_options.first %}
+                                    ৳{{ delivery_options.first.price }}
+                                {% else %}
+                                    ৳0.00
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fw-bold fs-5">Total:</span>
+                            <span class="fw-bold fs-5 text-primary" id="order-total">
+                                {% if delivery_options.first %}
+                                    ৳{{ subtotal|add:delivery_options.first.price }}
+                                {% else %}
+                                    ৳{{ subtotal }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-check me-2"></i>Place Order
+                        </button>
+                        
+                        <a href="{% url 'cart' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Cart
+                        </a>
+                        
+                        <!-- Security Info -->
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Your information is secure
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Order and Delivery Terms</h6>
+                <ul>
+                    <li>All orders are subject to product availability.</li>
+                    <li>Delivery time is 3-7 business days for standard shipping.</li>
+                    <li>Payment is collected upon delivery for COD orders.</li>
+                    <li>Please ensure someone is available at the delivery address.</li>
+                </ul>
+                
+                <h6>Return Policy</h6>
+                <ul>
+                    <li>Items can be returned within 7 days of delivery.</li>
+                    <li>Products must be in original condition and packaging.</li>
+                    <li>Return shipping costs are borne by the customer.</li>
+                </ul>
+                
+                <h6>Contact Information</h6>
+                <p>For any questions or concerns, please contact us at:</p>
+                <ul>
+                    <li>Phone: +1 (555) 123-4567</li>
+                    <li>Email: support@estore.com</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.progress-steps {
+    margin-bottom: 2rem;
+}
+
+.step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+}
+
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 60%;
+    right: -40%;
+    height: 2px;
+    background: #dee2e6;
+    z-index: -1;
+}
+
+.step.completed:not(:last-child)::after {
+    background: #198754;
+}
+
+.step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.step-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.order-summary-item:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .progress-steps {
+        margin-bottom: 1.5rem;
+    }
+    
+    .step {
+        margin-bottom: 1rem;
+    }
+    
+    .step:not(:last-child)::after {
+        display: none;
+    }
+    
+    .step-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .step-label {
+        font-size: 0.8rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .order-summary-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+    
+    .order-summary-item .d-flex {
+        width: 100%;
+    }
+    
+    .delivery-option .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+    
+    .delivery-option .text-end {
+        align-self: flex-end;
+    }
+    
+    /* Stack order summary below form on mobile */
+    .position-sticky {
+        position: relative !important;
+        top: auto !important;
+    }
+    
+    /* Better spacing for mobile */
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .form-control {
+        font-size: 1rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+    
+    .step-label {
+        font-size: 0.75rem;
+    }
+    
+    .card-header h5 {
+        font-size: 0.9rem;
+    }
+    
+    .card-header .fas {
+        font-size: 0.8rem;
+    }
+    
+    .order-summary-item img {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .order-summary-item small {
+        font-size: 0.75rem;
+    }
+    
+    .delivery-option {
+        padding: 1rem !important;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .btn {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation and delivery option handling
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const phoneInput = document.getElementById('customer_phone');
+    const deliveryOptions = document.querySelectorAll('input[name="delivery_option"]');
+    const subtotal = parseFloat('{{ subtotal }}');
+    
+    // Update total when delivery option changes
+    function updateOrderTotal() {
+        const selectedOption = document.querySelector('input[name="delivery_option"]:checked');
+        const deliveryFee = selectedOption ? parseFloat(selectedOption.closest('.delivery-option').dataset.price) : 0;
+        const total = subtotal + deliveryFee;
+        
+        document.getElementById('delivery-fee').textContent = `$${deliveryFee.toFixed(2)}`;
+        document.getElementById('order-total').textContent = `৳${total.toFixed(2)}`;
+        
+        // Add animation
+        document.getElementById('delivery-fee').style.transform = 'scale(1.1)';
+        document.getElementById('order-total').style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            document.getElementById('delivery-fee').style.transform = 'scale(1)';
+            document.getElementById('order-total').style.transform = 'scale(1)';
+        }, 150);
+    }
+    
+    // Bind delivery option change events
+    deliveryOptions.forEach(option => {
+        option.addEventListener('change', updateOrderTotal);
+    });
+    
+    // Phone number formatting
+    phoneInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length >= 6) {
+            value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+        } else if (value.length >= 3) {
+            value = value.replace(/(\d{3})(\d{3})/, '($1) $2');
+        }
+        this.value = value;
+    });
+    
+    // Handle delivery option selection
+    const deliveryRadios = document.querySelectorAll('input[name="delivery_option"]');
+    
+    // Initialize with first option selected
+    if (deliveryRadios.length > 0) {
+        const firstOption = deliveryRadios[0];
+        if (firstOption.checked) {
+            updateDeliveryFee(parseFloat(firstOption.dataset.price || 0));
+        }
+    }
+    
+    deliveryRadios.forEach(option => {
+        option.addEventListener('change', function() {
+            // Update order summary delivery fee
+            updateDeliveryFee(parseFloat(this.dataset.price || 0));
+        });
+    });
+    
+    // Update delivery fee in order summary
+    function updateDeliveryFee(fee) {
+        const deliveryFeeElement = document.getElementById('delivery-fee');
+        const orderTotalElement = document.getElementById('order-total');
+        const subtotalElement = document.getElementById('subtotal-amount');
+        
+        if (!subtotalElement) {
+            console.error('Subtotal element not found');
+            return;
+        }
+        
+        const subtotal = parseFloat(subtotalElement.textContent.replace('৳', ''));
+        
+        if (deliveryFeeElement) {
+            deliveryFeeElement.textContent = `৳${fee.toFixed(2)}`;
+        }
+        
+        if (orderTotalElement) {
+            const newTotal = subtotal + fee;
+            orderTotalElement.textContent = `৳${newTotal.toFixed(2)}`;
+        }
+        
+        console.log(`Updated delivery fee: ৳${fee}, Subtotal: ৳${subtotal}, New Total: ৳${(subtotal + fee).toFixed(2)}`);
+    }
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('customer_name').value.trim();
+        const phone = document.getElementById('customer_phone').value.trim();
+        const address = document.getElementById('shipping_address').value.trim();
+        const selectedDelivery = document.querySelector('input[name="delivery_option"]:checked');
+        
+        if (!name || !phone || !address) {
+            e.preventDefault();
+            showAlert('Please fill in all required fields.', 'danger');
+            return;
+        }
+        
+        if (!selectedDelivery) {
+            e.preventDefault();
+            showAlert('Please select a delivery option.', 'danger');
+            return;
+        }
+        
+        if (phone.length < 10) {
+            e.preventDefault();
+            showAlert('Please enter a valid phone number.', 'danger');
+            return;
+        }
+        
+        // Show confirmation
+        if (!confirm('Are you sure you want to place this order?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

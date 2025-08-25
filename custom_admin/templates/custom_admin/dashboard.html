@@ -1,0 +1,362 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Dashboard</h1>
+            <p class="text-muted">Welcome to your e-commerce management dashboard</p>
+        </div>
+        <div class="text-muted">
+            <i class="bi bi-calendar"></i> {{ "now"|date:"F j, Y" }}
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ total_products }}</h4>
+                    <small>Total Products</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-box" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card success">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ total_orders }}</h4>
+                    <small>Total Orders</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-receipt" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card warning">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">৳{{ total_revenue|floatformat:2 }}</h4>
+                    <small>Total Revenue</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-currency-dollar" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card info">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ total_categories }}</h4>
+                    <small>Categories</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-tags" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Visit Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-6 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ today_visits }}</h4>
+                    <small>Today's Visits</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-people" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h4 class="mb-0">{{ current_online }}</h4>
+                    <small>Currently Online</small>
+                </div>
+                <div class="flex-shrink-0">
+                    <i class="bi bi-wifi" style="font-size: 2rem; opacity: 0.7;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <h5 class="mb-3"><i class="bi bi-lightning"></i> Quick Actions</h5>
+    <div class="row">
+        <div class="col-md-6 col-lg-3 mb-2">
+            <a href="{% url 'custom_admin:product_create' %}" class="btn btn-primary btn-custom w-100">
+                <i class="bi bi-plus-circle"></i> Add Product
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-2">
+            <a href="{% url 'custom_admin:order_list' %}" class="btn btn-success btn-custom w-100">
+                <i class="bi bi-receipt"></i> View Orders
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-2">
+            <a href="{% url 'custom_admin:category_list' %}" class="btn btn-info btn-custom w-100">
+                <i class="bi bi-tags"></i> Manage Categories
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-2">
+            <a href="{% url 'custom_admin:analytics' %}" class="btn btn-warning btn-custom w-100">
+                <i class="bi bi-graph-up"></i> View Analytics
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3 mb-2">
+            <a href="{% url 'custom_admin:featured_products' %}" class="btn btn-purple btn-custom w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
+                <i class="bi bi-star"></i> Manage Featured
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Monthly Sales Chart -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Monthly Sales Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Orders -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Orders</h5>
+                <a href="{% url 'custom_admin:order_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_orders %}
+                    <div class="list-group list-group-flush">
+                        {% for order in recent_orders %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">Order #{{ order.id }}</h6>
+                                        <p class="mb-1 text-muted">
+                                            {{ order.customer_name }}
+                                        </p>
+                                        <small class="text-muted">{{ order.created_at|date:"M j, Y H:i" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>৳{{ order.total_amount|floatformat:2 }}</strong>
+                                        {% if order.status %}
+                                            <br><span class="badge bg-primary badge-status">{{ order.status|title }}</span>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <a href="{% url 'custom_admin:order_detail' order.id %}" 
+                                               class="btn btn-sm btn-outline-primary" title="View Order">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'custom_admin:order_invoice' order.id %}" 
+                                               class="btn btn-sm btn-outline-success" title="Invoice" target="_blank">
+                                                <i class="bi bi-file-text"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted">No recent orders</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Top Products -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-trophy"></i> Top Selling Products</h5>
+            </div>
+            <div class="card-body">
+                {% if top_products %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Sold</th>
+                                    <th>Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in top_products %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if product.image %}
+                                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                         class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ product.name|truncatechars:30 }}</strong>
+                                                    <br><small class="text-muted">৳{{ product.price }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-success">{{ product.total_sold|default:0 }}</span></td>
+                                        <td>
+                                            {% if product.stock_quantity < 10 %}
+                                                <span class="badge bg-danger">{{ product.stock_quantity }}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">{{ product.stock_quantity }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted">No product sales data</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Low Stock Alert -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle text-warning"></i> Low Stock Alerts
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if low_stock_products %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Stock</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in low_stock_products %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ product.name|truncatechars:25 }}</strong>
+                                            <br><small class="text-muted">{{ product.category.name }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ product.stock_quantity }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'custom_admin:product_detail' product.slug %}" 
+                                               class="btn btn-sm btn-outline-primary">Update</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                        <p class="text-muted">All products are well stocked!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Sales Chart
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesData = {{ monthly_sales|safe }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: salesData.map(item => item.month),
+            datasets: [{
+                label: 'Revenue ($)',
+                data: salesData.map(item => item.revenue),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 6,
+                    hoverRadius: 8,
+                    backgroundColor: '#667eea',
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

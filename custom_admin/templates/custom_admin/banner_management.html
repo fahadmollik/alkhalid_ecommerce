@@ -1,0 +1,201 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Banner Management{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Banner Management</h1>
+            <p class="text-muted">Manage homepage carousel banners</p>
+        </div>
+        <button type="button" class="btn btn-primary btn-custom" data-bs-toggle="modal" data-bs-target="#createBannerModal">
+            <i class="bi bi-plus-circle"></i> Add Banner
+        </button>
+    </div>
+</div>
+
+<!-- Banners List -->
+<div class="card">
+    <div class="card-body">
+        {% if banners %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Preview</th>
+                            <th>Banner Details</th>
+                            <th>Order</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for banner in banners %}
+                            <tr>
+                                <td>
+                                    {% if banner.image %}
+                                        <img src="{{ banner.image.url }}" alt="{{ banner.title }}" 
+                                             class="rounded" style="width: 120px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                             style="width: 120px; height: 60px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ banner.title }}</strong>
+                                        {% if banner.subtitle %}
+                                            <br><small class="text-muted">{{ banner.subtitle }}</small>
+                                        {% endif %}
+                                        {% if banner.button_text %}
+                                            <br><span class="badge bg-info">{{ banner.button_text }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ banner.order }}</span>
+                                </td>
+                                <td>
+                                    {% if banner.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <form method="post" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="toggle">
+                                            <input type="hidden" name="banner_id" value="{{ banner.id }}">
+                                            <button type="submit" class="btn btn-outline-{% if banner.is_active %}warning{% else %}success{% endif %}" 
+                                                    title="{% if banner.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                <i class="bi bi-{% if banner.is_active %}pause{% else %}play{% endif %}"></i>
+                                            </button>
+                                        </form>
+                                        
+                                        <button type="button" class="btn btn-outline-danger" 
+                                                onclick="deleteBanner({{ banner.id }}, '{{ banner.title }}')" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                <h3 class="text-muted mt-3">No Banners Found</h3>
+                <p class="text-muted">Create attractive banners for your homepage carousel</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBannerModal">
+                    <i class="bi bi-plus-circle"></i> Create First Banner
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Create Banner Modal -->
+<div class="modal fade" id="createBannerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Banner</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Banner Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="subtitle" class="form-label">Subtitle</label>
+                                <input type="text" class="form-control" id="subtitle" name="subtitle">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="button_text" class="form-label">Button Text</label>
+                                <input type="text" class="form-control" id="button_text" name="button_text" value="Shop Now">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="button_url" class="form-label">Button URL</label>
+                                <input type="url" class="form-control" id="button_url" name="button_url" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="order" class="form-label">Display Order</label>
+                                <input type="number" class="form-control" id="order" name="order" value="0" min="0">
+                                <div class="form-text">Lower numbers appear first</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="image" class="form-label">Banner Image *</label>
+                                <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                                <div class="form-text">Recommended: 1200x400px</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Active (visible on website)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Banner</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Banner Form (Hidden) -->
+<form id="deleteBannerForm" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="banner_id" id="deleteBannerId">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteBanner(bannerId, bannerTitle) {
+    if (confirm(`Are you sure you want to delete the banner "${bannerTitle}"? This action cannot be undone.`)) {
+        document.getElementById('deleteBannerId').value = bannerId;
+        document.getElementById('deleteBannerForm').submit();
+    }
+}
+</script>
+{% endblock %}

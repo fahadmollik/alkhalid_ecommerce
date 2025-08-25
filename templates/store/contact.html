@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - E-Commerce Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Contact Us</h2>
+            <p class="text-muted lead">Get in touch with us for any questions or support!</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Contact Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Contact Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="contact-item mb-4">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-map-marker-alt text-primary me-3 mt-1 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-2">Address</h6>
+                                <p class="text-muted mb-0">
+                                    {{ site_settings.address|linebreaksbr }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-item mb-4">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-phone text-primary me-3 mt-1 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-2">Phone</h6>
+                                <p class="text-muted mb-0">{{ site_settings.phone }}</p>
+                                <p class="text-muted mb-0">{{ site_settings.phone_number }}</p>
+                                <small class="text-muted">Customer Service: {{ site_settings.business_hours }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-item mb-4">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-envelope text-primary me-3 mt-1 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-2">Email</h6>
+                                <p class="text-muted mb-1">{{ site_settings.email }}</p>
+                                <small class="text-muted">We respond within 24 hours</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-clock text-primary me-3 mt-1 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-2">Business Hours</h6>
+                                <p class="text-muted mb-0">
+                                    <strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM<br>
+                                    <strong>Saturday:</strong> 10:00 AM - 4:00 PM<br>
+                                    <strong>Sunday:</strong> Closed
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FAQ -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Frequently Asked Questions
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item border-0 mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-light border-0 rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    <i class="fas fa-truck me-2 text-primary"></i>How long does delivery take?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body bg-light rounded mt-2">
+                                    Standard delivery takes 3-7 business days. We offer free delivery on orders over ৳500.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-light border-0 rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    <i class="fas fa-credit-card me-2 text-primary"></i>What payment methods do you accept?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body bg-light rounded mt-2">
+                                    Currently, we accept Cash on Delivery (COD). More payment options will be available soon.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0 mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-light border-0 rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    <i class="fas fa-undo me-2 text-primary"></i>Can I return items?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body bg-light rounded mt-2">
+                                    Yes, we offer a 7-day return policy. Items must be in original condition and packaging.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-light border-0 rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    <i class="fas fa-search me-2 text-primary"></i>How can I track my order?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body bg-light rounded mt-2">
+                                    After placing your order, we'll contact you via phone or email with updates about your order status. You can also use our <a href="{% url 'track_order' %}" class="text-primary">order tracking page</a>.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Information -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-handshake me-2"></i>Why Choose Us?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4">
+                            <i class="fas fa-shipping-fast fa-3x text-primary mb-3"></i>
+                            <h6 class="fw-bold">Fast Delivery</h6>
+                            <p class="text-muted small">Quick and reliable shipping to your doorstep</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                            <h6 class="fw-bold">Secure Shopping</h6>
+                            <p class="text-muted small">Your personal information is safe with us</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <i class="fas fa-headset fa-3x text-info mb-3"></i>
+                            <h6 class="fw-bold">24/7 Support</h6>
+                            <p class="text-muted small">We're here to help you anytime</p>
+                        </div>
+                        <div class="col-md-3 text-center mb-4">
+                            <i class="fas fa-money-bill-wave fa-3x text-warning mb-3"></i>
+                            <h6 class="fw-bold">Cash on Delivery</h6>
+                            <p class="text-muted small">Pay when you receive your order</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

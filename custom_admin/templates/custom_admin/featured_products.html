@@ -1,0 +1,271 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Featured Products{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Featured Products & Best Sellers</h1>
+            <p class="text-muted">Manage which products appear as featured and best sellers</p>
+        </div>
+        <div>
+            <span class="badge bg-primary me-2">Featured: {{ featured_count }}</span>
+            <span class="badge bg-success">Best Sellers: {{ bestseller_count }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-star-fill text-warning"></i> Featured Products</h5>
+            </div>
+            <div class="card-body">
+                {% if featured_products %}
+                    <div class="row">
+                        {% for product in featured_products %}
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                             class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ product.name|truncatechars:20 }}</strong>
+                                        <br><small class="text-muted">৳{{ product.price }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-star text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted">No featured products yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-trophy-fill text-success"></i> Best Sellers</h5>
+            </div>
+            <div class="card-body">
+                {% if best_sellers %}
+                    <div class="row">
+                        {% for product in best_sellers %}
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                             class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ product.name|truncatechars:20 }}</strong>
+                                        <br><small class="text-muted">৳{{ product.price }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-trophy text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted">No best sellers yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- All Products Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-list"></i> All Products</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Featured</th>
+                        <th>Best Seller</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                             class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ product.name }}</strong>
+                                        <br><small class="text-muted">ID: {{ product.id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ product.category.name }}</span>
+                            </td>
+                            <td>৳{{ product.price }}</td>
+                            <td>
+                                {% if product.stock_quantity < 10 %}
+                                    <span class="badge bg-danger">{{ product.stock_quantity }}</span>
+                                {% else %}
+                                    <span class="badge bg-success">{{ product.stock_quantity }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_featured %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-star-fill"></i> Featured
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">Not Featured</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_best_seller %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-trophy-fill"></i> Best Seller
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">Regular</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                                        <input type="hidden" name="action" value="toggle_featured">
+                                        <button type="submit" class="btn btn-sm {% if product.is_featured %}btn-warning{% else %}btn-outline-warning{% endif %}" 
+                                                title="Toggle Featured">
+                                            <i class="bi bi-star{% if product.is_featured %}-fill{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                                        <input type="hidden" name="action" value="toggle_bestseller">
+                                        <button type="submit" class="btn btn-sm {% if product.is_best_seller %}btn-success{% else %}btn-outline-success{% endif %}" 
+                                                title="Toggle Best Seller">
+                                            <i class="bi bi-trophy{% if product.is_best_seller %}-fill{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    <a href="{% url 'custom_admin:product_detail' product.slug %}" class="btn btn-sm btn-outline-primary" title="Edit Product">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No products found</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Products pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Tips -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="bi bi-lightbulb"></i> Quick Tips</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6><i class="bi bi-star text-warning"></i> Featured Products</h6>
+                <ul class="text-muted">
+                    <li>Featured products appear prominently on your homepage</li>
+                    <li>Typically used for new arrivals or promotions</li>
+                    <li>Recommended: 4-8 featured products at a time</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6><i class="bi bi-trophy text-success"></i> Best Sellers</h6>
+                <ul class="text-muted">
+                    <li>Best sellers are shown in dedicated sections</li>
+                    <li>Help customers find popular products quickly</li>
+                    <li>Recommended: 6-12 best seller products</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

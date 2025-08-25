@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Ecommerce Management</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .login-header h3 {
+            margin: 0;
+            font-weight: bold;
+        }
+        
+        .login-body {
+            padding: 30px;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: bold;
+            color: white;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            z-index: 10;
+        }
+        
+        .input-group .form-control {
+            padding-left: 45px;
+            margin-bottom: 0;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .login-footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .login-footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="login-card">
+                    <div class="login-header">
+                        <i class="bi bi-shield-lock fs-1 mb-3"></i>
+                        <h3>Admin Login</h3>
+                        <p class="mb-0">Ecommerce Management Panel</p>
+                    </div>
+                    
+                    <div class="login-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="input-group">
+                                <i class="bi bi-person"></i>
+                                <input type="text" class="form-control" name="username" 
+                                       placeholder="Username" required autocomplete="username">
+                            </div>
+                            
+                            <div class="input-group">
+                                <i class="bi bi-lock"></i>
+                                <input type="password" class="form-control" name="password" 
+                                       placeholder="Password" required autocomplete="current-password">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-login">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Login to Admin Panel
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="login-footer">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Only authorized staff members can access this panel.
+                        </small>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                If you forget your password, please contact the developer to reset or create a new staff account.
+                            </small>
+                        </small>
+                        <a href="{% url 'home' %}" class="mt-2 d-inline-block">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Website
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

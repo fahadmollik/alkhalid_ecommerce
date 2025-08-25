@@ -1,0 +1,352 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">Orders</h1>
+            <p class="text-muted">Manage customer orders and fulfillment</p>
+        </div>
+        <div>
+            <span class="badge bg-primary fs-6">{{ page_obj.paginator.count }} Total Orders</span>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <input type="text" class="form-control" name="search" placeholder="Search orders..." 
+                       value="{{ search_query }}">
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    {% for status_code, status_name in status_choices %}
+                        <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>
+                            {{ status_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <select name="date_filter" class="form-select">
+                    <option value="">All Time</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="week" {% if date_filter == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if date_filter == 'month' %}selected{% endif %}>This Month</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-3 col-sm-6">
+                <select name="sort" class="form-select">
+                    <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Oldest First</option>
+                    <option value="-total_amount" {% if sort_by == '-total_amount' %}selected{% endif %}>Highest Value</option>
+                    <option value="total_amount" {% if sort_by == 'total_amount' %}selected{% endif %}>Lowest Value</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary flex-fill">
+                        <i class="bi bi-search"></i> <span class="d-none d-sm-inline">Filter</span>
+                    </button>
+                    <a href="{% url 'custom_admin:order_list' %}" class="btn btn-outline-secondary flex-fill">
+                        <i class="bi bi-arrow-clockwise"></i> <span class="d-none d-sm-inline">Reset</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders List -->
+<div class="card">
+    <div class="card-body">
+        <!-- Desktop Table View -->
+        <div class="table-responsive d-none d-lg-block">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th style="width: 200px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in page_obj %}
+                        <tr>
+                            <td>
+                                <strong>#{{ order.id }}</strong>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ order.customer_name }}</strong>
+                                    {% if order.customer_email %}
+                                        <br><small class="text-muted">{{ order.customer_email }}</small>
+                                    {% elif order.customer_phone %}
+                                        <br><small class="text-muted">{{ order.customer_phone }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ order.created_at|date:"M j, Y" }}</strong>
+                                    <br><small class="text-muted">{{ order.created_at|time:"H:i" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ order.items.count }} items</span>
+                            </td>
+                            <td>
+                                <strong>৳{{ order.total_amount|floatformat:2 }}</strong>
+                            </td>
+                            <td>
+                                {% if order.status %}
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ order.status|title }}</span>
+                                    {% elif order.status == 'processing' %}
+                                        <span class="badge bg-info">{{ order.status|title }}</span>
+                                    {% elif order.status == 'shipped' %}
+                                        <span class="badge bg-primary">{{ order.status|title }}</span>
+                                    {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success">{{ order.status|title }}</span>
+                                    {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger">{{ order.status|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ order.status|title }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">New</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1" role="group">
+                                    <a href="{% url 'custom_admin:order_detail' order.id %}" 
+                                       class="btn btn-sm btn-outline-primary" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                        <span class="d-none d-lg-inline ms-1">View</span>
+                                    </a>
+                                    <a href="{% url 'custom_admin:order_invoice' order.id %}" 
+                                       class="btn btn-sm btn-outline-success" title="View Invoice" target="_blank">
+                                        <i class="bi bi-file-text"></i>
+                                        <span class="d-none d-lg-inline ms-1">Invoice</span>
+                                    </a>
+                                    {% if order.status and order.status != 'delivered' and order.status != 'cancelled' %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" 
+                                                    type="button" data-bs-toggle="dropdown" title="Quick Status Update">
+                                                <i class="bi bi-gear"></i>
+                                                <span class="d-none d-lg-inline ms-1">Status</span>
+                                                <i class="bi bi-chevron-down ms-1" style="font-size: 0.75rem;"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item quick-status" 
+                                                       data-order-id="{{ order.id }}" data-status="processing">
+                                                    <i class="bi bi-arrow-right text-info"></i> Mark as Processing
+                                                </a></li>
+                                                <li><a class="dropdown-item quick-status" 
+                                                       data-order-id="{{ order.id }}" data-status="shipped">
+                                                    <i class="bi bi-truck text-primary"></i> Mark as Shipped
+                                                </a></li>
+                                                <li><a class="dropdown-item quick-status" 
+                                                       data-order-id="{{ order.id }}" data-status="delivered">
+                                                    <i class="bi bi-check-circle text-success"></i> Mark as Delivered
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    {% else %}
+                                        <span class="btn btn-sm btn-outline-secondary disabled" title="No actions available">
+                                            <i class="bi bi-check-circle"></i>
+                                            <span class="d-none d-lg-inline ms-1">Complete</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No orders found</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="d-lg-none">
+            {% for order in page_obj %}
+                <div class="card mb-3 border">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <h6 class="card-title mb-1">
+                                    <strong>#{{ order.id }}</strong>
+                                    <span class="ms-2">
+                                        {% if order.status %}
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">{{ order.status|title }}</span>
+                                            {% elif order.status == 'processing' %}
+                                                <span class="badge bg-info">{{ order.status|title }}</span>
+                                            {% elif order.status == 'shipped' %}
+                                                <span class="badge bg-primary">{{ order.status|title }}</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-success">{{ order.status|title }}</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">{{ order.status|title }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ order.status|title }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">New</span>
+                                        {% endif %}
+                                    </span>
+                                </h6>
+                                <p class="text-muted small mb-1">
+                                    <i class="bi bi-person"></i> {{ order.customer_name }}
+                                </p>
+                                <p class="text-muted small mb-1">
+                                    <i class="bi bi-telephone"></i> {{ order.customer_phone }}
+                                </p>
+                                <p class="text-muted small mb-0">
+                                    <i class="bi bi-calendar"></i> {{ order.created_at|date:"M j, Y H:i" }}
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <h5 class="text-primary mb-2">৳{{ order.total_amount|floatformat:2 }}</h5>
+                                <p class="small text-muted mb-2">
+                                    <span class="badge bg-secondary">{{ order.items.count }} items</span>
+                                </p>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <a href="{% url 'custom_admin:order_detail' order.id %}" 
+                               class="btn btn-sm btn-outline-primary flex-fill">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                            <a href="{% url 'custom_admin:order_invoice' order.id %}" 
+                               class="btn btn-sm btn-outline-success flex-fill" target="_blank">
+                                <i class="bi bi-file-text"></i> Invoice
+                            </a>
+                            {% if order.status and order.status != 'delivered' and order.status != 'cancelled' %}
+                                <div class="dropdown flex-fill">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" 
+                                            type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-gear"></i> Update Status
+                                    </button>
+                                    <ul class="dropdown-menu w-100">
+                                        <li><a class="dropdown-item quick-status" 
+                                               data-order-id="{{ order.id }}" data-status="processing">
+                                            <i class="bi bi-arrow-right"></i> Processing
+                                        </a></li>
+                                        <li><a class="dropdown-item quick-status" 
+                                               data-order-id="{{ order.id }}" data-status="shipped">
+                                            <i class="bi bi-truck"></i> Shipped
+                                        </a></li>
+                                        <li><a class="dropdown-item quick-status" 
+                                               data-order-id="{{ order.id }}" data-status="delivered">
+                                            <i class="bi bi-check-circle"></i> Delivered
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">No orders found</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Orders pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick status update
+    const quickStatusLinks = document.querySelectorAll('.quick-status');
+    quickStatusLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const orderId = this.dataset.orderId;
+            const status = this.dataset.status;
+            
+            if (confirm(`Are you sure you want to mark this order as ${status}?`)) {
+                fetch('{% url "custom_admin:quick_status_update" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: `order_id=${orderId}&status=${status}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Error updating order status');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
