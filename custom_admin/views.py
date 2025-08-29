@@ -692,12 +692,34 @@ def settings_view(request):
     # Get general settings from session or use defaults
     saved_settings = request.session.get('admin_settings', default_settings)
     
+    # Get database name
+    from django.conf import settings as django_settings
+    import os
+    db_settings = django_settings.DATABASES.get('default', {})
+    db_engine = db_settings.get('ENGINE', '')
+    db_name = db_settings.get('NAME', '')
+    if 'sqlite' in db_engine and db_name:
+        database_name = os.path.basename(db_name)
+    else:
+        database_name = db_name or 'Unknown'
+
+    import shutil
+    try:
+        usage = shutil.disk_usage("/")
+        total_storage = f"{usage.total // (1024 * 1024 * 1024)} GB"
+        available_storage = f"{usage.free // (1024 * 1024 * 1024)} GB"
+    except Exception:
+        total_storage = "Unknown"
+        available_storage = "Unknown"
+
     context = {
         'branding': branding,
         'admin_email': saved_settings.get('admin_email', default_settings['admin_email']),
         'items_per_page': saved_settings.get('items_per_page', default_settings['items_per_page']),
+        'database_name': database_name,
+        'total_storage': total_storage,
+        'available_storage': available_storage,
     }
-    
     return render(request, 'custom_admin/settings.html', context)
 
 
