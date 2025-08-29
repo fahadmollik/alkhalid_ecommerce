@@ -51,25 +51,25 @@
                             <div class="col-md-6 mb-3">
                                 <label for="customer_name" class="form-label">Full Name *</label>
                                 <input type="text" class="form-control" id="customer_name" 
-                                       name="customer_name" required>
+                                       name="customer_name" required placeholder="আপনার নাম">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="customer_phone" class="form-label">Phone Number *</label>
                                 <input type="tel" class="form-control" id="customer_phone" 
-                                       name="customer_phone" required>
+                                       name="customer_phone" required placeholder="আপনার মোবাইল নাম্বার">
                             </div>
                         </div>
                         
                         <div class="mb-3">
                             <label for="customer_email" class="form-label">Email Address (Optional)</label>
                             <input type="email" class="form-control" id="customer_email" 
-                                   name="customer_email">
+                                   name="customer_email" placeholder="আপনার ইমেইল ঠিকানা">
                         </div>
                         
                         <div class="mb-3">
                             <label for="shipping_address" class="form-label">Complete Address *</label>
                             <textarea class="form-control" id="shipping_address" name="shipping_address" 
-                                      rows="4" required placeholder="Enter your complete address including street, city, state, and postal code"></textarea>
+                                      rows="4" required placeholder="আপনার বাসার সম্পূর্ণ ঠিকানা"></textarea>
                         </div>
                         
                         <div class="mb-3">
@@ -77,7 +77,7 @@
                                 Additional Notes (Optional)
                             </label>
                             <textarea class="form-control" id="notes" name="notes" rows="3" 
-                                      placeholder="Any special instructions for delivery..."></textarea>
+                                      placeholder="ডেলিভারির জন্য কোন বিশেষ নির্দেশাবলী"></textarea>
                         </div>
                         
                         <div class="mb-3">
@@ -124,7 +124,7 @@
                              <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" alt="{{ item.product.name }}" 
                                  class="rounded me-2 flex-shrink-0" style="width: 40px; height: 40px; object-fit: cover;">
                                     <div class="flex-grow-1">
-                                        <small class="fw-bold d-block">{{ item.product.name }}</small>
+                                        <small class="fw-bold d-block">{{ item.product.name|slice:":30" }}{% if item.product.name|length > 30 %}...{% endif %}</small>
                                         <small class="text-muted">Qty: {{ item.quantity }}</small>
                                     </div>
                                 </div>
@@ -429,12 +429,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Phone number formatting
     phoneInput.addEventListener('input', function() {
         let value = this.value.replace(/\D/g, '');
-        if (value.length >= 6) {
-            value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-        } else if (value.length >= 3) {
-            value = value.replace(/(\d{3})(\d{3})/, '($1) $2');
+        if (value.length === 11 && value.startsWith('01')) {
+            this.setCustomValidity('');
+        } else {
+            this.setCustomValidity('Enter a valid phone number');
         }
-        this.value = value;
     });
     
     // Handle delivery option selection

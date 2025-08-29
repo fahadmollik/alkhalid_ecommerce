@@ -199,7 +199,15 @@
                     </tr>
                     <tr>
                         <td><strong>Database:</strong></td>
-                        <td>SQLite</td>
+                        <td>{{ database_name|default:"PostgreSQL" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Storage:</strong></td>
+                        <td>{{ total_storage|default:"Unknown" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Available Storage:</strong></td>
+                        <td>{{ available_storage|default:"Unknown" }}</td>
                     </tr>
                     <tr>
                         <td><strong>Admin Version:</strong></td>
