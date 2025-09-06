@@ -127,7 +127,7 @@
                                        class="btn btn-outline-success" title="View on Site">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{% url 'custom_admin:product_delete' product.id %}" 
+                                    <a href="{% url 'custom_admin:product_delete' product.slug %}" 
                                        class="btn btn-outline-danger" title="Delete"
                                        onclick="return confirm('Are you sure you want to delete &quot;{{ product.name|escapejs }}&quot;? This action cannot be undone.')">
                                         <i class="bi bi-trash"></i>
