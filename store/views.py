@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Product, Category, HeroBanner, CartItem, Order, OrderItem, DeliveryOption, OrderStatusHistory
+from .models import Product, Category, HeroBanner, CartItem, Order, OrderItem, DeliveryOption, OrderStatusHistory, ProductImage
 import json
 
 def home(request):
@@ -103,6 +103,9 @@ def product_detail(request, product_slug):
         stock_quantity__gt=0
     ).exclude(id=product.id)[:4]
     
+    # Get additional images for this product
+    additional_images = product.additional_images.all()
+    
     # Get cart product ids for current session
     cart_product_ids = []
     if request.session.session_key:
@@ -112,6 +115,7 @@ def product_detail(request, product_slug):
         'product': product,
         'related_products': related_products,
         'cart_product_ids': cart_product_ids,
+        'additional_images': additional_images,
     }
     return render(request, 'store/product_detail.html', context)
 

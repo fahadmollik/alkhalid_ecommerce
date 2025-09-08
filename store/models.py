@@ -407,3 +407,24 @@ class OnlineUser(models.Model):
     
     def __str__(self):
         return f'Online: {self.ip_address} - {self.last_activity}'
+
+
+class ProductImage(models.Model):
+    """Additional images for products"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='additional_images')
+    image = models.ImageField(upload_to='products/additional/')
+    alt_text = models.CharField(max_length=255, blank=True, help_text='Alternative text for the image')
+    is_featured = models.BooleanField(default=False, help_text='Display this image prominently')
+    order = models.PositiveIntegerField(default=0, help_text='Display order (lower numbers appear first)')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['product'], name='productimage_product_idx'),
+            models.Index(fields=['order'], name='productimage_order_idx'),
+            models.Index(fields=['is_featured'], name='productimage_featured_idx'),
+        ]
+    
+    def __str__(self):
+        return f'{self.product.name} - Image {self.order}'

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 
-from store.models import Product, Category, Order, OrderItem, HeroBanner, SiteSettings, UserVisit, OnlineUser, OrderStatusHistory, DeliveryOption
+from store.models import Product, Category, Order, OrderItem, HeroBanner, SiteSettings, UserVisit, OnlineUser, OrderStatusHistory, DeliveryOption, ProductImage
 
 # Check if user is staff
 def is_staff(user):
@@ -206,31 +206,53 @@ def product_detail(request, product_slug):
     product = get_object_or_404(Product, slug=product_slug)
     
     if request.method == 'POST':
-        # Update product
-        product.name = request.POST.get('name', product.name)
-        product.description = request.POST.get('description', product.description)
-        product.price = float(request.POST.get('price', product.price))
+        # Handle different form actions
+        action = request.POST.get('action', 'update_product')
         
-        # Handle original price for discount functionality
-        original_price = request.POST.get('original_price', '').strip()
-        if original_price:
-            product.original_price = float(original_price)
-        else:
-            product.original_price = None
+        if action == 'update_product':
+            # Update product
+            product.name = request.POST.get('name', product.name)
+            product.description = request.POST.get('description', product.description)
+            product.price = float(request.POST.get('price', product.price))
             
-        product.stock_quantity = int(request.POST.get('stock', product.stock_quantity))
-        product.category_id = request.POST.get('category', product.category_id)
+            # Handle original price for discount functionality
+            original_price = request.POST.get('original_price', '').strip()
+            if original_price:
+                product.original_price = float(original_price)
+            else:
+                product.original_price = None
+                
+            product.stock_quantity = int(request.POST.get('stock', product.stock_quantity))
+            product.category_id = request.POST.get('category', product.category_id)
+            
+            # Handle YouTube URL
+            youtube_url = request.POST.get('youtube_url', '').strip()
+            product.youtube_url = youtube_url if youtube_url else None
+            
+            # Handle image upload
+            if 'image' in request.FILES:
+                product.image = request.FILES['image']
+            
+            product.save()
+            messages.success(request, f'Product "{product.name}" updated successfully!')
+            
+        elif action == 'add_images':
+            # Handle multiple image uploads
+            images = request.FILES.getlist('additional_images')
+            if images:
+                added_count = 0
+                for image in images:
+                    ProductImage.objects.create(
+                        product=product,
+                        image=image,
+                        alt_text=request.POST.get('alt_text', ''),
+                        order=ProductImage.objects.filter(product=product).count()
+                    )
+                    added_count += 1
+                messages.success(request, f'{added_count} image(s) added successfully!')
+            else:
+                messages.warning(request, 'Please select at least one image to upload.')
         
-        # Handle YouTube URL
-        youtube_url = request.POST.get('youtube_url', '').strip()
-        product.youtube_url = youtube_url if youtube_url else None
-        
-        # Handle image upload
-        if 'image' in request.FILES:
-            product.image = request.FILES['image']
-        
-        product.save()
-        messages.success(request, f'Product "{product.name}" updated successfully!')
         return redirect('custom_admin:product_detail', product_slug=product.slug)
     
     categories = Category.objects.all()
@@ -238,10 +260,14 @@ def product_detail(request, product_slug):
     # Get order history for this product
     order_items = product.orderitem.select_related('order')[:10]
     
+    # Get additional images for this product
+    additional_images = product.additional_images.all()
+    
     context = {
         'product': product,
         'categories': categories,
         'order_items': order_items,
+        'additional_images': additional_images,
     }
     
     return render(request, 'custom_admin/product_detail.html', context)
@@ -266,6 +292,17 @@ def product_create(request):
                 image=request.FILES.get('image'),
                 youtube_url=request.POST.get('youtube_url', '').strip() or None
             )
+            
+            # Handle additional images
+            additional_images = request.FILES.getlist('additional_images')
+            for i, image in enumerate(additional_images):
+                ProductImage.objects.create(
+                    product=product,
+                    image=image,
+                    alt_text=request.POST.get('alt_text', ''),
+                    order=i
+                )
+            
             messages.success(request, f'Product "{product.name}" created successfully!')
             return redirect('custom_admin:product_detail', product_slug=product.slug)
         except Exception as e:
@@ -278,6 +315,39 @@ def product_create(request):
     }
     
     return render(request, 'custom_admin/product_create.html', context)
+
+
+@admin_required
+def product_image_delete(request, image_id):
+    """Delete a product image"""
+    image = get_object_or_404(ProductImage, id=image_id)
+    product_slug = image.product.slug
+    
+    if request.method == 'POST':
+        image.delete()
+        messages.success(request, 'Image deleted successfully!')
+    
+    return redirect('custom_admin:product_detail', product_slug=product_slug)
+
+
+@admin_required
+def product_image_reorder(request):
+    """Reorder product images via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            image_orders = data.get('image_orders', [])
+            
+            for item in image_orders:
+                image_id = item.get('id')
+                new_order = item.get('order')
+                ProductImage.objects.filter(id=image_id).update(order=new_order)
+            
+            return JsonResponse({'success': True, 'message': 'Images reordered successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 @admin_required
 def product_delete(request, product_slug):
