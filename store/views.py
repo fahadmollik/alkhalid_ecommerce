@@ -125,6 +125,13 @@ def add_to_cart(request, product_id):
         
         quantity = int(request.POST.get('quantity', 1))
         
+        # Debug: Print what we're receiving
+        print(f"=== ADD TO CART DEBUG ===")
+        print(f"Product: {product.name}")
+        print(f"Requested quantity: {quantity}")
+        print(f"POST data: {dict(request.POST)}")
+        print(f"Session key: {request.session.session_key}")
+        
         if quantity > product.stock_quantity:
             messages.error(request, 'Not enough stock available.')
             return redirect('product_detail', product_id=product_id)
@@ -136,12 +143,24 @@ def add_to_cart(request, product_id):
         )
         
         if not created:
+            print(f"Existing cart item found - current quantity: {cart_item.quantity}")
             new_quantity = cart_item.quantity + quantity
+            print(f"New quantity will be: {new_quantity}")
             if new_quantity > product.stock_quantity:
                 messages.error(request, 'Not enough stock available.')
                 return redirect('product_detail', product_id=product_id)
             cart_item.quantity = new_quantity
             cart_item.save()
+            print(f"Updated cart item quantity to: {cart_item.quantity}")
+        else:
+            print(f"Created new cart item with quantity: {cart_item.quantity}")
+        
+        # Debug: Check all cart items for this session
+        all_cart_items = CartItem.objects.filter(session_key=request.session.session_key)
+        print(f"All cart items for session:")
+        for item in all_cart_items:
+            print(f"  - {item.product.name}: quantity {item.quantity}")
+        print("=== END DEBUG ===")
         
         messages.success(request, f'{product.name} added to cart!')
         
@@ -159,10 +178,12 @@ def cart(request):
     
     cart_items = CartItem.objects.filter(session_key=request.session.session_key)
     total = sum(item.total_price for item in cart_items)
+    total_quantity = sum(item.quantity for item in cart_items)
     
     context = {
         'cart_items': cart_items,
         'total': total,
+        'total_quantity': total_quantity,
     }
     return render(request, 'store/cart.html', context)
 
@@ -194,12 +215,14 @@ def update_cart(request, item_id):
                 # Calculate new totals
                 cart_items = CartItem.objects.filter(session_key=request.session.session_key)
                 cart_total = sum(item.total_price for item in cart_items)
+                total_quantity = sum(item.quantity for item in cart_items)
                 
                 return JsonResponse({
                     'success': True, 
                     'message': 'Cart updated!',
                     'item_total': float(cart_item.total_price),
                     'cart_total': float(cart_total),
+                    'total_quantity': total_quantity,
                     'item_quantity': cart_item.quantity
                 })
             messages.success(request, 'Cart updated!')
@@ -229,11 +252,13 @@ def remove_from_cart(request, item_id):
         # Calculate new totals for AJAX response
         cart_items = CartItem.objects.filter(session_key=request.session.session_key)
         cart_total = sum(item.total_price for item in cart_items)
+        total_quantity = sum(item.quantity for item in cart_items)
         
         return JsonResponse({
             'success': True, 
             'message': 'Item removed from cart!',
             'cart_total': float(cart_total),
+            'total_quantity': total_quantity,
             'cart_empty': not cart_items.exists()
         })
     

@@ -90,12 +90,14 @@
                 <div class="col-lg-4 col-md-6 col-6">
                     <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
                         <div class="product-image-container position-relative">
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
-                                     onerror="this.src='/static/images/no-image.png';">
-                            {% else %}
-                                <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
-                            {% endif %}
+                            <a href="{% url 'product_detail' product.slug %}" class="d-block">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                         onerror="this.src='/static/images/no-image.png';">
+                                {% else %}
+                                    <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                                {% endif %}
+                            </a>
                             <div class="product-overlay">
                                 <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm me-2">
                                     <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View</span>

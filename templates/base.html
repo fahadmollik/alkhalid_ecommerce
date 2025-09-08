@@ -13,6 +13,9 @@
     <!-- Custom CSS -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ now|date:'YmdHis' }}">
+    <link rel="stylesheet" href="{% static 'css/categories-mobile.css' %}?v={{ now|date:'YmdHis' }}">
+    <link rel="stylesheet" href="{% static 'css/mobile-categories.css' %}?v={{ now|date:'YmdHis' }}">
+    <link rel="stylesheet" href="{% static 'css/desktop-categories-carousel.css' %}?v={{ now|date:'YmdHis' }}">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -25,26 +28,32 @@
                 <div class="row align-items-center g-2">
                     <!-- Logo/Branding -->
                     <div class="col-6 col-md-4 col-lg-3">
-                        <a class="navbar-brand fw-bold text-decoration-none d-flex align-items-center" 
-                           href="{% url 'home' %}" 
-                           style="color: {{ site_settings.header_text_color|default:'white' }};">
-                            {% if site_settings.logo %}
-                                <img src="{{ site_settings.logo.url }}" 
-                                     alt="{{ site_name }}" 
-                                     class="logo-img me-2"
-                                     style="height: 40px;">
-                            {% else %}
-                                <div class="logo-icon me-2">
-                                    <i class="fas fa-shopping-bag" style="font-size: 1.8rem;"></i>
-                                </div>
-                            {% endif %}
-                            <div class="brand-text">
-                                <span class="brand-name d-block" style="font-size: 1.25rem; line-height: 1.1;">{{ site_settings.site_name|default:'E-Store' }}</span>
-                                {% if site_tagline %}
-                                    <small class="brand-tagline d-none d-lg-block text-white-75" style="font-size: 0.7rem; font-weight: 400;">{{ site_tagline }}</small>
+                        <!-- Categories Hamburger Menu Button -->
+                        <div class="d-flex align-items-center">
+                            <button class="categories-hamburger-btn me-1" id="categoriesMenuToggle" type="button" aria-label="Toggle Categories Menu">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <a class="navbar-brand fw-bold text-decoration-none d-flex align-items-center" 
+                               href="{% url 'home' %}" 
+                               style="color: {{ site_settings.header_text_color|default:'white' }};">
+                                {% if site_settings.logo %}
+                                    <img src="{{ site_settings.logo.url }}" 
+                                         alt="{{ site_name }}" 
+                                         class="logo-img me-2"
+                                         style="height: 40px;">
+                                {% else %}
+                                    <div class="logo-icon me-2">
+                                        <i class="fas fa-shopping-bag" style="font-size: 1.8rem;"></i>
+                                    </div>
                                 {% endif %}
-                            </div>
-                        </a>
+                                <div class="brand-text">
+                                    <span class="brand-name d-block" style="font-size: 1.25rem; line-height: 1.1;">{{ site_settings.site_name|default:'E-Store' }}</span>
+                                    {% if site_tagline %}
+                                        <small class="brand-tagline d-none d-lg-block text-white-75" style="font-size: 0.7rem; font-weight: 400;">{{ site_tagline }}</small>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
                     </div>
                     
                     <!-- Search Bar -->
@@ -86,7 +95,7 @@
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="btn-text d-none d-sm-inline ms-1">Cart</span>
                                 {% if cart_count > 0 %}
-                                <span class="cart-badge position-absolute translate-middle badge rounded-pill bg-danger">
+                                <span class="cart-badge position-absolute badge rounded-pill bg-danger">
                                     {{ cart_count }}
                                     <span class="visually-hidden">items in cart</span>
                                 </span>
@@ -103,12 +112,13 @@
     <div id="contactButtons" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 15px;">
         <!-- Call Button -->
         <div id="callButton" style="position: relative;">
-            <a href="tel:{{ site_settings.phone_number|default:'+15551234567' }}" 
-               style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #28a745; color: white; border-radius: 50%; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 24px; transition: all 0.3s ease;"
-               title="Call Now: {{ site_settings.phone_number|default:'+1 (555) 123-4567' }}"
+            <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'd like to get in touch with you." 
+               target="_blank"
+               style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #25D366; color: white; border-radius: 50%; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 24px; transition: all 0.3s ease;"
+               title="Contact us on WhatsApp: {{ site_settings.whatsapp_number|default:'+1 (555) 123-4567' }}"
                onmouseover="this.style.transform='scale(1.1)'"
                onmouseout="this.style.transform='scale(1)'">
-                <i class="fas fa-phone-alt"></i>
+                <i class="fab fa-whatsapp"></i>
             </a>
         </div>
         
@@ -125,7 +135,7 @@
                 } else {
                     call.style.display = 'none';
                     whatsapp.style.display = 'none';
-                    icon.className = 'fas fa-plus';
+                    icon.className = 'fab fa-whatsapp';
                 }
             "
                     style="display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; background: #6c757d; color: white; border: none; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-size: 18px; cursor: pointer; transition: all 0.3s ease;"
@@ -223,6 +233,43 @@
     <script src="{% static 'js/main.js' %}?v=2025082202"></script>
     <!-- Enhanced Header JS -->
     <script src="{% static 'js/header.js' %}"></script>
+    <!-- Categories Mobile Menu JS -->
+    <script src="{% static 'js/categories-mobile.js' %}?v={{ now|date:'YmdHis' }}"></script>
+    <!-- Mobile Categories Slider JS -->
+    <script src="{% static 'js/mobile-categories.js' %}?v={{ now|date:'YmdHis' }}"></script>
+    <!-- Desktop Categories Carousel JS -->
+    <script src="{% static 'js/desktop-categories-carousel.js' %}?v={{ now|date:'YmdHis' }}"></script>
+    
+    <!-- Categories Mobile Menu -->
+    <div class="categories-sidebar" id="categoriesSidebar">
+        <div class="categories-sidebar-header">
+            <h5 class="mb-0">Shop by Category</h5>
+            <button type="button" class="categories-sidebar-close" id="closeCategoriesMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="categories-sidebar-body">
+            <ul class="categories-list">
+                {% for category in categories %}
+                <li>
+                    <a href="{% url 'category_products' category.slug %}">
+                        {{ category.name }}
+                    </a>
+                </li>
+                {% empty %}
+                <li><div class="p-3 text-muted">No categories available</div></li>
+                {% endfor %}
+                <li>
+                    <a href="{% url 'products' %}">
+                        All Categories
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Categories Menu Overlay -->
+    <div class="categories-overlay" id="categoriesOverlay"></div>
     
     <!-- Initialize tooltips for call button -->
     <script>
@@ -240,7 +287,7 @@
                 } else {
                     // Hide buttons
                     container.classList.add('hidden');
-                    toggleIcon.className = 'fas fa-phone';
+                    toggleIcon.className = 'fab fa-whatsapp';
                     localStorage.setItem('contactButtonsVisible', 'false');
                 }
             }
@@ -307,7 +354,7 @@
             // Only hide if explicitly set to false, default is visible
             if (isVisible === 'false' && container && toggleIcon) {
                 container.classList.add('hidden');
-                toggleIcon.className = 'fas fa-phone';
+                toggleIcon.className = 'fab fa-whatsapp';
             } else if (container && toggleIcon) {
                 // Ensure buttons are visible by default
                 container.classList.remove('hidden');
