@@ -1,0 +1,261 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Edit Banner - Custom Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-pencil-square"></i> Edit Banner</h2>
+                <a href="{% url 'custom_admin:banner_management' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Banners
+                </a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="row">
+                <!-- Edit Form -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Banner Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="title" class="form-label">Banner Title *</label>
+                                            <input type="text" 
+                                                   class="form-control {% if form.title.errors %}is-invalid{% endif %}" 
+                                                   id="title" 
+                                                   name="title" 
+                                                   value="{{ form.title.value|default:banner.title }}" 
+                                                   required>
+                                            {% if form.title.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.title.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="subtitle" class="form-label">Subtitle</label>
+                                            <input type="text" 
+                                                   class="form-control {% if form.subtitle.errors %}is-invalid{% endif %}" 
+                                                   id="subtitle" 
+                                                   name="subtitle" 
+                                                   value="{{ form.subtitle.value|default:banner.subtitle|default_if_none:'' }}">
+                                            {% if form.subtitle.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.subtitle.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="button_text" class="form-label">Button Text</label>
+                                            <input type="text" 
+                                                   class="form-control {% if form.button_text.errors %}is-invalid{% endif %}" 
+                                                   id="button_text" 
+                                                   name="button_text" 
+                                                   value="{{ form.button_text.value|default:banner.button_text|default_if_none:'' }}">
+                                            {% if form.button_text.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.button_text.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="button_url" class="form-label">Button URL</label>
+                                            <input type="url" 
+                                                   class="form-control {% if form.button_url.errors %}is-invalid{% endif %}" 
+                                                   id="button_url" 
+                                                   name="button_url" 
+                                                   value="{{ form.button_url.value|default:banner.button_url|default_if_none:'' }}" 
+                                                   placeholder="https://...">
+                                            {% if form.button_url.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.button_url.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="order" class="form-label">Display Order</label>
+                                            <input type="number" 
+                                                   class="form-control {% if form.order.errors %}is-invalid{% endif %}" 
+                                                   id="order" 
+                                                   name="order" 
+                                                   value="{{ form.order.value|default:banner.order }}" 
+                                                   min="0">
+                                            {% if form.order.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.order.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Lower numbers appear first</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="image" class="form-label">Banner Image</label>
+                                            <input type="file" 
+                                                   class="form-control {% if form.image.errors %}is-invalid{% endif %}" 
+                                                   id="image" 
+                                                   name="image" 
+                                                   accept="image/*">
+                                            {% if form.image.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ form.image.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Leave empty to keep current image</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Status</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       id="is_active" 
+                                                       name="is_active" 
+                                                       {% if form.is_active.value or banner.is_active and not form.is_active.value == False %}checked{% endif %}>
+                                                <label class="form-check-label" for="is_active">
+                                                    Active (visible on website)
+                                                </label>
+                                            </div>
+                                            {% if form.is_active.errors %}
+                                                <div class="text-danger small mt-1">
+                                                    {{ form.is_active.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- New Image Preview -->
+                                <div class="mb-3" id="imagePreview" style="display: none;">
+                                    <label class="form-label">New Image Preview</label>
+                                    <div class="border rounded p-3 bg-light">
+                                        <img id="previewImg" class="img-fluid rounded" style="max-height: 200px;">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'custom_admin:banner_management' %}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Update Banner
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Banner Preview -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Current Banner</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if banner.image %}
+                                <img src="{{ banner.image.url }}" class="img-fluid rounded mb-3" alt="{{ banner.title }}">
+                            {% endif %}
+                            
+                            <div class="mb-2">
+                                <strong>{{ banner.title }}</strong>
+                                {% if banner.is_active %}
+                                    <span class="badge bg-success ms-2">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger ms-2">Inactive</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if banner.subtitle %}
+                                <p class="text-muted mb-2">{{ banner.subtitle }}</p>
+                            {% endif %}
+                            
+                            {% if banner.button_text %}
+                                <div class="mb-2">
+                                    <span class="badge bg-info">{{ banner.button_text }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if banner.button_url %}
+                                <div class="mb-2">
+                                    <small class="text-primary">
+                                        <i class="bi bi-link-45deg"></i> {{ banner.button_url|truncatechars:30 }}
+                                    </small>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="small text-muted">
+                                <div>Order: {{ banner.order }}</div>
+                                <div>Created: {{ banner.created_at|date:"M d, Y" }}</div>
+                                {% if banner.updated_at %}
+                                    <div>Updated: {{ banner.updated_at|date:"M d, Y" }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image preview functionality
+    const imageInput = document.getElementById('image');
+    const previewContainer = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

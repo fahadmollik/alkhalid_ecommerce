@@ -533,34 +533,7 @@ def banner_management(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        if action == 'create':
-            try:
-                banner = HeroBanner.objects.create(
-                    title=request.POST['title'],
-                    subtitle=request.POST.get('subtitle', ''),
-                    button_text=request.POST.get('button_text', 'Shop Now'),
-                    button_url=request.POST.get('button_url', ''),
-                    order=int(request.POST.get('order', 0)),
-                    is_active='is_active' in request.POST,
-                    image=request.FILES.get('image')
-                )
-                messages.success(request, f'Banner "{banner.title}" created successfully!')
-            except Exception as e:
-                messages.error(request, f'Error creating banner: {str(e)}')
-        
-        elif action == 'delete':
-            banner_id = request.POST.get('banner_id')
-            try:
-                banner = HeroBanner.objects.get(id=banner_id)
-                banner_title = banner.title
-                banner.delete()
-                messages.success(request, f'Banner "{banner_title}" deleted successfully!')
-            except HeroBanner.DoesNotExist:
-                messages.error(request, 'Banner not found')
-            except Exception as e:
-                messages.error(request, f'Error deleting banner: {str(e)}')
-        
-        elif action == 'toggle':
+        if action == 'toggle':
             banner_id = request.POST.get('banner_id')
             try:
                 banner = HeroBanner.objects.get(id=banner_id)
@@ -578,6 +551,94 @@ def banner_management(request):
     context = {
         'banners': banners,
     }
+    return render(request, 'custom_admin/banner_management.html', context)
+
+
+@admin_required
+def banner_create(request):
+    """Create new banner"""
+    
+    if request.method == 'POST':
+        try:
+            banner = HeroBanner.objects.create(
+                title=request.POST['title'],
+                subtitle=request.POST.get('subtitle', ''),
+                button_text=request.POST.get('button_text', 'Shop Now'),
+                button_url=request.POST.get('button_url', ''),
+                order=int(request.POST.get('order', 0)),
+                is_active='is_active' in request.POST,
+                image=request.FILES.get('image')
+            )
+            messages.success(request, f'Banner "{banner.title}" created successfully!')
+            return redirect('custom_admin:banner_detail', banner_id=banner.id)
+        except Exception as e:
+            messages.error(request, f'Error creating banner: {str(e)}')
+    
+    context = {}
+    return render(request, 'custom_admin/banner_create.html', context)
+
+
+@admin_required
+def banner_detail(request, banner_id):
+    """View and edit banner details"""
+    
+    banner = get_object_or_404(HeroBanner, id=banner_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update banner fields
+            banner.title = request.POST.get('title', banner.title)
+            banner.subtitle = request.POST.get('subtitle', banner.subtitle)
+            banner.button_text = request.POST.get('button_text', banner.button_text)
+            banner.button_url = request.POST.get('button_url', banner.button_url)
+            banner.order = int(request.POST.get('order', banner.order))
+            banner.is_active = 'is_active' in request.POST
+            
+            # Handle image upload
+            if 'image' in request.FILES:
+                banner.image = request.FILES['image']
+            
+            banner.save()
+            messages.success(request, f'Banner "{banner.title}" updated successfully!')
+            return redirect('custom_admin:banner_detail', banner_id=banner.id)
+        except Exception as e:
+            messages.error(request, f'Error updating banner: {str(e)}')
+    
+    context = {
+        'banner': banner,
+    }
+    return render(request, 'custom_admin/banner_detail.html', context)
+
+
+@admin_required
+def banner_delete(request, banner_id):
+    """Delete banner directly"""
+    
+    banner = get_object_or_404(HeroBanner, id=banner_id)
+    banner_title = banner.title
+    banner.delete()
+    messages.success(request, f'Banner "{banner_title}" deleted successfully!')
+    return redirect('custom_admin:banner_management')
+
+
+@admin_required
+def banner_reorder(request):
+    """Reorder banners via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            banner_orders = data.get('banner_orders', [])
+            
+            for item in banner_orders:
+                banner_id = item.get('id')
+                new_order = item.get('order')
+                HeroBanner.objects.filter(id=banner_id).update(order=new_order)
+            
+            return JsonResponse({'success': True, 'message': 'Banners reordered successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
     
     return render(request, 'custom_admin/banner_management.html', context)
 

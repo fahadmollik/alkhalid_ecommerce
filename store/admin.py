@@ -77,11 +77,11 @@ class OrderAdmin(admin.ModelAdmin):
         })
     )
     
-    def has_delete_permission(self, request, obj=None):
-        # Prevent deletion of confirmed orders
-        if obj and obj.status in ['confirmed', 'shipped', 'delivered']:
-            return False
-        return True
+    # def has_delete_permission(self, request, obj=None):
+    #     # Prevent deletion of confirmed orders
+    #     if obj and obj.status in ['confirmed', 'shipped', 'delivered']:
+    #         return False
+    #     return True
 
 
 @admin.register(ProductImage)

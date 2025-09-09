@@ -30,6 +30,10 @@ urlpatterns = [
     
     # Banners
     path('banners/', views.banner_management, name='banner_management'),
+    path('banners/create/', views.banner_create, name='banner_create'),
+    path('banners/<int:banner_id>/', views.banner_detail, name='banner_detail'),
+    path('banners/<int:banner_id>/delete/', views.banner_delete, name='banner_delete'),
+    path('banners/reorder/', views.banner_reorder, name='banner_reorder'),
     
     # Analytics
     path('analytics/', views.analytics_view, name='analytics'),
