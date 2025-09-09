@@ -101,9 +101,23 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="image" class="form-label">Product Image</label>
+                        <label for="image" class="form-label">Main Product Image</label>
                         <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                        <div class="form-text">Upload a product image (JPG, PNG, etc.)</div>
+                        <div class="form-text">Upload the main product image (JPG, PNG, etc.)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="additional_images" class="form-label">Additional Images (Optional)</label>
+                        <input type="file" class="form-control" id="additional_images" 
+                               name="additional_images" multiple accept="image/*">
+                        <div class="form-text">Upload multiple additional images (Ctrl+Click or Cmd+Click to select multiple)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="alt_text" class="form-label">Alt Text for Additional Images (Optional)</label>
+                        <input type="text" class="form-control" id="alt_text" name="alt_text" 
+                               placeholder="Alternative text for accessibility">
+                        <div class="form-text">This will be applied to all additional images</div>
                     </div>
                     
                     <div class="mb-3">

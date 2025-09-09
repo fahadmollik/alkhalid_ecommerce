@@ -13,6 +13,10 @@ urlpatterns = [
     path('products/<slug:product_slug>/', views.product_detail, name='product_detail'),
     path('products/<slug:product_slug>/delete/', views.product_delete, name='product_delete'),
     
+    # Product Images
+    path('product-images/<int:image_id>/delete/', views.product_image_delete, name='product_image_delete'),
+    path('product-images/reorder/', views.product_image_reorder, name='product_image_reorder'),
+    
     # Categories
     path('categories/', views.category_list, name='category_list'),
     path('categories/create/', views.category_create, name='category_create'),
@@ -26,6 +30,10 @@ urlpatterns = [
     
     # Banners
     path('banners/', views.banner_management, name='banner_management'),
+    path('banners/create/', views.banner_create, name='banner_create'),
+    path('banners/<int:banner_id>/', views.banner_detail, name='banner_detail'),
+    path('banners/<int:banner_id>/delete/', views.banner_delete, name='banner_delete'),
+    path('banners/reorder/', views.banner_reorder, name='banner_reorder'),
     
     # Analytics
     path('analytics/', views.analytics_view, name='analytics'),

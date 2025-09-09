@@ -25,6 +25,16 @@
                         {% endif %}
                     </div>
                     
+                    <!-- Additional Images -->
+                    {% for image in additional_images %}
+                    <div id="additional-image-{{ image.id }}" class="media-content d-none">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}" 
+                             class="product-detail-image img-fluid rounded shadow w-100"
+                             style="height: 400px; object-fit: cover;"
+                             onerror="this.src='https://via.placeholder.com/600x400?text=No+Image';">
+                    </div>
+                    {% endfor %}
+                    
                     <!-- YouTube Video -->
                     {% if product.youtube_url %}
                     <div id="product-video" class="media-content d-none">
@@ -40,11 +50,21 @@
                     {% endif %}
                 </div>
                 
+                <!-- Image Counter -->
+                {% if additional_images %}
+                <div class="text-center mb-2">
+                    <small class="text-muted">
+                        <i class="fas fa-images me-1"></i>
+                        <span id="current-image">1</span> of {{ additional_images|length|add:1 }}{% if product.youtube_url %}+1 video{% endif %}
+                    </small>
+                </div>
+                {% endif %}
+                
                 <!-- Media Thumbnails -->
                 <div class="media-thumbnails">
                     <div class="row g-2">
-                        <!-- Image Thumbnail -->
-                        <div class="col-6">
+                        <!-- Main Image Thumbnail -->
+                        <div class="col-3">
                             <div class="thumbnail-wrapper position-relative">
                                 {% if product.image %}
                                     <img src="{{ product.image.url }}" alt="{{ product.name }}" 
@@ -61,14 +81,31 @@
                                          onclick="switchMedia('image')">
                                 {% endif %}
                                 <div class="thumbnail-label">
-                                    <i class="fas fa-image me-1"></i>Image
+                                    <i class="fas fa-image me-1"></i>Main
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- Additional Images Thumbnails -->
+                        {% for image in additional_images %}
+                        <div class="col-3">
+                            <div class="thumbnail-wrapper position-relative">
+                                <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}" 
+                                     class="img-fluid rounded shadow-sm w-100 media-thumb"
+                                     style="height: 80px; object-fit: cover; cursor: pointer;"
+                                     data-media="additional-image-{{ image.id }}"
+                                     onclick="switchMedia('additional-image-{{ image.id }}')"
+                                     onerror="this.src='https://via.placeholder.com/150x100?text=No+Image';">
+                                <div class="thumbnail-label">
+                                    <i class="fas fa-image me-1"></i>{{ forloop.counter }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
                         <!-- Video Thumbnail -->
                         {% if product.youtube_url %}
-                        <div class="col-6">
+                        <div class="col-3">
                             <div class="thumbnail-wrapper position-relative">
                                 <div class="video-thumb bg-danger d-flex align-items-center justify-content-center rounded shadow-sm w-100 media-thumb"
                                      style="height: 80px; cursor: pointer;"
@@ -138,21 +175,41 @@
                             </div>
                         </div>
                         <div class="col">
-                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
-                                <button type="submit" class="btn btn-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
-                                    <i class="fas fa-cart-plus me-2"></i> Add to Cart
-                                </button>
-                                <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center" style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
-                                    <i class="fas fa-bolt me-2"></i> Buy Now
+                            <div class="d-flex flex-column gap-2 align-items-stretch">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center flex-fill" style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
+                                        <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                                    </button>
+                                    <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center flex-fill" style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
+                                        <i class="fas fa-bolt me-2"></i> Buy Now
+                                    </a>
+                                </div>
+                                <!-- WhatsApp Order Button - Full Width -->
+                                <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'm interested in ordering this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0APlease let me know about availability and delivery details." 
+                                   target="_blank" 
+                                   class="btn-whatsapp btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
+                                   style="border-radius: 999px; font-size: 1rem; font-weight: 500;"
+                                   title="Order via WhatsApp">
+                                    <i class="fab fa-whatsapp me-2"></i> Order via WhatsApp
                                 </a>
                             </div>
                         </div>
                     </div>
                 </form>
                 {% else %}
-                <button class="btn btn-secondary btn-lg mb-4" disabled>
-                    <i class="fas fa-times me-2"></i>Out of Stock
-                </button>
+                <div class="mb-4">
+                    <button class="btn btn-secondary btn-lg w-100 mb-2" disabled style="border-radius: 999px; font-size: 1rem; font-weight: 500;">
+                        <i class="fas fa-times me-2"></i>Out of Stock
+                    </button>
+                    <!-- WhatsApp Inquiry Button for Out of Stock -->
+                    <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'm interested in this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0AThis product is currently out of stock. When will it be available again?" 
+                       target="_blank" 
+                       class="btn-whatsapp-outline btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
+                       style="border-radius: 999px; font-size: 1rem; font-weight: 500;"
+                       title="Inquire via WhatsApp">
+                        <i class="fab fa-whatsapp me-2"></i> Inquire on WhatsApp
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -182,7 +239,9 @@
                 <div class="col-lg-3 col-md-6 col-6">
                     <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
                         <div class="product-image-container position-relative">
-                            <img src="{{ related_product.image.url }}" alt="{{ related_product.name }}" class="product-image">
+                            <a href="{% url 'product_detail' related_product.slug %}" class="d-block">
+                                <img src="{{ related_product.image.url }}" alt="{{ related_product.name }}" class="product-image">
+                            </a>
                             <div class="product-overlay">
                                 <a href="{% url 'product_detail' related_product.slug %}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View Details</span>
@@ -208,7 +267,7 @@
                                     {% endif %}
                                 </div>
                                 {% if related_product.is_in_stock %}
-                                <form method="post" action="{% url 'add_to_cart' related_product.id %}" class="add-to-cart-form">
+                                <form method="post" action="{% url 'add_to_cart' related_product.id %}" class="related-product-form">
                                     {% csrf_token %}
                                     <input type="hidden" name="quantity" value="1">
                                     <button type="submit" class="btn btn-success btn-sm">
@@ -342,14 +401,12 @@ function updateQuantityDisplay(quantity) {
         badge.textContent = quantity;
     });
     
-    // Update form input values to ensure consistency
-    const allQuantityInputs = document.querySelectorAll('input[name="quantity"]');
-    allQuantityInputs.forEach(inp => {
-        if (inp.id === 'quantity') {
-            inp.value = quantity;
-            inp.setAttribute('value', quantity);
-        }
-    });
+    // Update only the main product quantity input (not related product hidden inputs)
+    const mainQuantityInput = document.getElementById('quantity');
+    if (mainQuantityInput) {
+        mainQuantityInput.value = quantity;
+        mainQuantityInput.setAttribute('value', quantity);
+    }
 }
 
 // Make functions globally available immediately
@@ -369,6 +426,66 @@ document.addEventListener('DOMContentLoaded', function() {
             updateQuantityDisplay(this.value);
         });
     }
+    
+    // Prevent double form submissions for main add-to-cart form
+    const mainAddToCartForm = document.querySelector('.add-to-cart-form');
+    if (mainAddToCartForm) {
+        let isSubmitting = false;
+        
+        mainAddToCartForm.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            isSubmitting = true;
+            
+            // Find submit button and disable it
+            const submitButton = mainAddToCartForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+                
+                // Re-enable after a delay (in case of errors)
+                setTimeout(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                    isSubmitting = false;
+                }, 3000);
+            }
+        });
+    }
+    
+    // Handle related product forms separately
+    const relatedProductForms = document.querySelectorAll('.related-product-form');
+    relatedProductForms.forEach(form => {
+        let isSubmitting = false;
+        
+        form.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
+            isSubmitting = true;
+            
+            // Find submit button and disable it
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                const originalContent = submitButton.innerHTML;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                // Re-enable after a delay (in case of errors)
+                setTimeout(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalContent;
+                    isSubmitting = false;
+                }, 2000);
+            }
+        });
+    });
 });
 
 // Media switching functionality
@@ -383,23 +500,44 @@ function switchMedia(mediaType) {
         activeContent.style.opacity = '0';
         
         setTimeout(() => {
-            // Hide all content
-            if (imageContent) imageContent.classList.add('d-none');
-            if (videoContent) videoContent.classList.add('d-none');
+            // Hide all content (including additional images)
+            document.querySelectorAll('.media-content').forEach(content => {
+                content.classList.add('d-none');
+            });
             
             // Remove active state from all thumbnails
             thumbnails.forEach(thumb => thumb.classList.remove('active'));
             
             // Show selected content and activate thumbnail
             let targetContent = null;
+            let targetThumbnail = null;
+            
             if (mediaType === 'image' && imageContent) {
+                // Main product image
                 imageContent.classList.remove('d-none');
-                document.querySelector('[data-media="image"]').classList.add('active');
+                targetThumbnail = document.querySelector('[data-media="image"]');
                 targetContent = imageContent;
             } else if (mediaType === 'video' && videoContent) {
+                // YouTube video
                 videoContent.classList.remove('d-none');
-                document.querySelector('[data-media="video"]').classList.add('active');
+                targetThumbnail = document.querySelector('[data-media="video"]');
                 targetContent = videoContent;
+            } else if (mediaType.startsWith('additional-image-')) {
+                // Additional images
+                const additionalImageContent = document.getElementById(mediaType);
+                if (additionalImageContent) {
+                    additionalImageContent.classList.remove('d-none');
+                    targetThumbnail = document.querySelector(`[data-media="${mediaType}"]`);
+                    targetContent = additionalImageContent;
+                }
+            }
+            
+            // Activate the thumbnail
+            if (targetThumbnail) {
+                targetThumbnail.classList.add('active');
+                
+                // Update image counter
+                updateImageCounter(targetThumbnail);
             }
             
             // Fade in the new content
@@ -411,19 +549,96 @@ function switchMedia(mediaType) {
         }, 150);
     } else {
         // Initial load without animation
-        if (imageContent) imageContent.classList.add('d-none');
-        if (videoContent) videoContent.classList.add('d-none');
+        // Hide all content
+        document.querySelectorAll('.media-content').forEach(content => {
+            content.classList.add('d-none');
+        });
+        
+        // Remove active state from all thumbnails
         thumbnails.forEach(thumb => thumb.classList.remove('active'));
+        
+        // Show selected content and activate thumbnail
+        let targetContent = null;
+        let targetThumbnail = null;
         
         if (mediaType === 'image' && imageContent) {
             imageContent.classList.remove('d-none');
-            document.querySelector('[data-media="image"]').classList.add('active');
+            targetThumbnail = document.querySelector('[data-media="image"]');
+            targetContent = imageContent;
         } else if (mediaType === 'video' && videoContent) {
             videoContent.classList.remove('d-none');
-            document.querySelector('[data-media="video"]').classList.add('active');
+            targetThumbnail = document.querySelector('[data-media="video"]');
+            targetContent = videoContent;
+        } else if (mediaType.startsWith('additional-image-')) {
+            const additionalImageContent = document.getElementById(mediaType);
+            if (additionalImageContent) {
+                additionalImageContent.classList.remove('d-none');
+                targetThumbnail = document.querySelector(`[data-media="${mediaType}"]`);
+                targetContent = additionalImageContent;
+            }
+        }
+        
+        // Activate the thumbnail
+        if (targetThumbnail) {
+            targetThumbnail.classList.add('active');
+            
+            // Update image counter
+            updateImageCounter(targetThumbnail);
+        }
+        
+        // Set opacity
+        if (targetContent) {
+            targetContent.style.opacity = '1';
         }
     }
 }
+
+// Update image counter
+function updateImageCounter(activeThumbnail) {
+    const counterElement = document.getElementById('current-image');
+    if (!counterElement) return;
+    
+    const thumbnails = Array.from(document.querySelectorAll('.media-thumb'));
+    const currentIndex = thumbnails.indexOf(activeThumbnail);
+    
+    if (currentIndex !== -1) {
+        counterElement.textContent = currentIndex + 1;
+    }
+}
+
+// Initialize gallery on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up image error handling
+    document.querySelectorAll('.product-detail-image').forEach(img => {
+        img.addEventListener('error', function() {
+            this.src = 'https://via.placeholder.com/600x400?text=Image+Not+Found';
+            this.alt = 'Image not found';
+        });
+    });
+    
+    // Add keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            const thumbnails = Array.from(document.querySelectorAll('.media-thumb'));
+            const activeThumbnail = document.querySelector('.media-thumb.active');
+            
+            if (activeThumbnail && thumbnails.length > 1) {
+                const currentIndex = thumbnails.indexOf(activeThumbnail);
+                let nextIndex;
+                
+                if (e.key === 'ArrowLeft') {
+                    nextIndex = currentIndex > 0 ? currentIndex - 1 : thumbnails.length - 1;
+                } else {
+                    nextIndex = currentIndex < thumbnails.length - 1 ? currentIndex + 1 : 0;
+                }
+                
+                const nextThumbnail = thumbnails[nextIndex];
+                const mediaType = nextThumbnail.dataset.media;
+                switchMedia(mediaType);
+            }
+        }
+    });
+});
 
 // Make media switching function globally available
 window.switchMedia = switchMedia;

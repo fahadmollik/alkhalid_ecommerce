@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Product, HeroBanner, CartItem, Order, OrderItem, DeliveryOption
+from .models import Category, Product, HeroBanner, CartItem, Order, OrderItem, DeliveryOption, ProductImage
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -77,11 +77,21 @@ class OrderAdmin(admin.ModelAdmin):
         })
     )
     
-    def has_delete_permission(self, request, obj=None):
-        # Prevent deletion of confirmed orders
-        if obj and obj.status in ['confirmed', 'shipped', 'delivered']:
-            return False
-        return True
+    # def has_delete_permission(self, request, obj=None):
+    #     # Prevent deletion of confirmed orders
+    #     if obj and obj.status in ['confirmed', 'shipped', 'delivered']:
+    #         return False
+    #     return True
+
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ['product', 'alt_text', 'is_featured', 'order', 'created_at']
+    list_filter = ['product', 'is_featured', 'created_at']
+    search_fields = ['product__name', 'alt_text']
+    list_editable = ['is_featured', 'order']
+    ordering = ['product', 'order']
+
 
 # Customize admin site appearance
 admin.site.site_header = "E-Commerce Admin"
