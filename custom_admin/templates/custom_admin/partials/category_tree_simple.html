@@ -1,0 +1,324 @@
+{% load static %}
+
+<div class="category-tree-simple">
+    {% for item in categories %}
+        <div class="category-row" data-level="{{ item.category.get_level }}">
+            <div class="category-card {% if item.category.get_level == 0 %}root-category{% else %}sub-category{% endif %}">
+                <div class="category-content">
+                    <!-- Category Info -->
+                    <div class="category-info">
+                        <div class="d-flex align-items-center">
+                            <!-- Hierarchy Indicator -->
+                            {% if item.category.get_level > 0 %}
+                                <div class="hierarchy-line me-3">
+                                    {% for i in "x"|rjust:item.category.get_level %}
+                                        <span class="level-indicator"></span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Category Icon -->
+                            <div class="category-icon me-3">
+                                {% if item.category.image %}
+                                    <img src="{{ item.category.image.url }}" 
+                                         alt="{{ item.category.name }}" 
+                                         class="category-thumb">
+                                {% else %}
+                                    <div class="category-thumb-placeholder">
+                                        <i class="bi bi-folder"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Category Details -->
+                            <div class="category-details flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <h6 class="category-name mb-0 me-2">{{ item.category.name }}</h6>
+                                    {% if item.category.get_level == 0 %}
+                                        <span class="badge bg-primary">Root</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Level {{ item.category.get_level }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if item.category.description %}
+                                    <p class="category-description mb-1">{{ item.category.description|truncatechars:80 }}</p>
+                                {% endif %}
+                                
+                                <div class="category-stats">
+                                    <span class="stat-item">
+                                        <i class="bi bi-box me-1"></i>{{ item.category.products.count }} products
+                                    </span>
+                                    {% if item.children %}
+                                        <span class="stat-item ms-3">
+                                            <i class="bi bi-diagram-2 me-1"></i>{{ item.children|length }} subcategories
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="category-actions">
+                        <div class="btn-group">
+                            <a href="{% url 'custom_admin:category_detail' item.category.slug %}" 
+                               class="btn btn-sm btn-outline-primary" title="Edit Category">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            
+                            <a href="{% url 'category_products' item.category.slug %}" 
+                               target="_blank" 
+                               class="btn btn-sm btn-outline-success" title="View in Store">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown"
+                                        data-bs-auto-close="true"
+                                        aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'custom_admin:category_create' %}?parent={{ item.category.id }}">
+                                            <i class="bi bi-plus-circle me-2"></i>Add Subcategory
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" 
+                                           href="{% url 'custom_admin:category_delete' item.category.slug %}"
+                                           onclick="return confirm('Delete {{ item.category.name }}?')">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Render children -->
+            {% if item.children %}
+                {% include 'custom_admin/partials/category_tree_simple.html' with categories=item.children %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+.category-tree-simple {
+    padding: 0;
+}
+
+.category-row {
+    margin-bottom: 8px;
+}
+
+.category-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    background: white;
+    position: relative;
+}
+
+.category-card:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+}
+
+/* Prevent transform when dropdown is open to avoid blinking */
+.category-card:hover:not(.dropdown-open) {
+    transform: translateY(-1px);
+}
+
+.category-card.dropdown-open {
+    z-index: 1050;
+}
+
+.root-category {
+    border-left: 4px solid #0d6efd;
+}
+
+.sub-category {
+    border-left: 4px solid #6c757d;
+    margin-left: 20px;
+}
+
+.category-content {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.category-info {
+    flex-grow: 1;
+}
+
+.hierarchy-line {
+    display: flex;
+    align-items: center;
+}
+
+.level-indicator {
+    width: 12px;
+    height: 1px;
+    background-color: #dee2e6;
+    margin-right: 4px;
+}
+
+.level-indicator:last-child {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #6c757d;
+}
+
+.category-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.category-thumb-placeholder {
+    width: 48px;
+    height: 48px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.category-name {
+    font-weight: 600;
+    color: #212529;
+    font-size: 1.1rem;
+}
+
+.category-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.category-stats {
+    display: flex;
+    align-items: center;
+}
+
+.stat-item {
+    color: #6c757d;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+.category-actions {
+    margin-left: 16px;
+}
+
+.category-actions .btn-group .btn {
+    border-radius: 6px;
+    margin-right: 4px;
+}
+
+.category-actions .btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sub-category {
+        margin-left: 12px;
+    }
+    
+    .category-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .category-actions {
+        margin-left: 0;
+        align-self: stretch;
+    }
+    
+    .category-actions .btn-group {
+        width: 100%;
+        display: flex;
+    }
+    
+    .category-actions .btn {
+        flex: 1;
+    }
+}
+
+/* Animation for better UX */
+.category-card {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dropdown menu improvements */
+.dropdown-menu {
+    border: 1px solid #e9ecef;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 8px 0;
+    z-index: 1060;
+}
+
+.dropdown-item {
+    padding: 8px 16px;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.08);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle dropdown state to prevent blinking
+    const dropdownButtons = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+    
+    dropdownButtons.forEach(function(button) {
+        const categoryCard = button.closest('.category-card');
+        
+        button.addEventListener('show.bs.dropdown', function() {
+            if (categoryCard) {
+                categoryCard.classList.add('dropdown-open');
+            }
+        });
+        
+        button.addEventListener('hide.bs.dropdown', function() {
+            if (categoryCard) {
+                categoryCard.classList.remove('dropdown-open');
+            }
+        });
+    });
+});
+</script>

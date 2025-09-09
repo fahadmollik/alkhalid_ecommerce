@@ -75,9 +75,34 @@ def products(request):
     return render(request, 'store/products.html', context)
 
 def category_products(request, category_slug):
-    """Products by category"""
+    """Products by category including subcategories"""
     category = get_object_or_404(Category, slug=category_slug)
-    product_list = Product.objects.filter(category=category, stock_quantity__gt=0)
+    
+    # Get include_subcategories parameter from URL
+    include_subcategories = request.GET.get('include_subcategories', 'true').lower() == 'true'
+    
+    if include_subcategories:
+        # Get products from this category and all its subcategories
+        category_ids = [category.id] + [child.id for child in category.get_all_children()]
+        product_list = Product.objects.filter(category_id__in=category_ids, stock_quantity__gt=0)
+        subcategory_count = len(category_ids) - 1
+    else:
+        # Get products only from this category
+        product_list = Product.objects.filter(category=category, stock_quantity__gt=0)
+        subcategory_count = 0
+    
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by == 'price_low':
+        product_list = product_list.order_by('price')
+    elif sort_by == 'price_high':
+        product_list = product_list.order_by('-price')
+    elif sort_by == 'newest':
+        product_list = product_list.order_by('-created_at')
+    elif sort_by == 'popular':
+        product_list = product_list.order_by('-is_best_seller', '-created_at')
+    else:
+        product_list = product_list.order_by('name')
     
     paginator = Paginator(product_list, 12)
     page_number = request.GET.get('page')
@@ -88,10 +113,19 @@ def category_products(request, category_slug):
     if request.session.session_key:
         cart_items = CartItem.objects.filter(session_key=request.session.session_key)
         cart_product_ids = list(cart_items.values_list('product_id', flat=True))
+    
+    # Get subcategories for filter
+    subcategories = category.children.all()
+    
     context = {
         'category': category,
         'products': products_page,
         'cart_product_ids': cart_product_ids,
+        'include_subcategories': include_subcategories,
+        'subcategory_count': subcategory_count,
+        'subcategories': subcategories,
+        'current_sort': sort_by,
+        'total_products': product_list.count(),
     }
     return render(request, 'store/category_products.html', context)
 

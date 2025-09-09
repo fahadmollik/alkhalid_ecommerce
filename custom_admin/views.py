@@ -1024,34 +1024,53 @@ def admin_profile(request):
 
 @admin_required
 def category_list(request):
-    """List all categories with search functionality"""
+    """List all categories with hierarchical structure and search functionality"""
     
-    categories = Category.objects.all().order_by('name')  # Add ordering to prevent pagination warning
+    # Get root categories first
+    categories = Category.objects.filter(parent=None).prefetch_related('children').order_by('name')
     
     # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
-        categories = categories.filter(
+        categories = Category.objects.filter(
             Q(name__icontains=search_query) | 
             Q(description__icontains=search_query)
-        ).order_by('name')  # Maintain ordering after filtering
+        ).order_by('name')
+    
+    # If searching, show all matching categories (not just root)
+    if not search_query:
+        # For non-search view, build hierarchical structure
+        def build_category_tree(categories):
+            tree = []
+            for category in categories:
+                tree.append({
+                    'category': category,
+                    'children': build_category_tree(category.children.order_by('name'))
+                })
+            return tree
+        
+        category_tree = build_category_tree(categories)
+    else:
+        category_tree = None
     
     # Pagination
-    paginator = Paginator(categories, 15)
+    paginator = Paginator(categories, 20)
     page_number = request.GET.get('page')
     categories_page = paginator.get_page(page_number)
     
     context = {
         'categories': categories_page,
+        'category_tree': category_tree,
         'search_query': search_query,
         'total_categories': Category.objects.count(),
+        'root_categories_count': Category.objects.filter(parent=None).count(),
     }
     
     return render(request, 'custom_admin/category_list.html', context)
 
 @admin_required
 def category_detail(request, category_slug):
-    """View and edit category details"""
+    """View and edit category details with parent/child relationships"""
     
     category = get_object_or_404(Category, slug=category_slug)
     
@@ -1060,55 +1079,107 @@ def category_detail(request, category_slug):
         category.name = request.POST.get('name', category.name)
         category.description = request.POST.get('description', category.description)
         
+        # Handle parent category
+        parent_id = request.POST.get('parent')
+        if parent_id:
+            try:
+                parent_category = Category.objects.get(id=parent_id)
+                # Prevent circular reference
+                if not parent_category.is_child_of(category) and parent_category != category:
+                    category.parent = parent_category
+                else:
+                    messages.error(request, 'Cannot set parent: This would create a circular reference!')
+                    return redirect('custom_admin:category_detail', category_slug=category.slug)
+            except Category.DoesNotExist:
+                messages.error(request, 'Selected parent category does not exist!')
+                return redirect('custom_admin:category_detail', category_slug=category.slug)
+        else:
+            category.parent = None
+        
         # Handle image upload
         if 'image' in request.FILES:
             category.image = request.FILES['image']
         
-        category.save()
-        messages.success(request, f'Category "{category.name}" updated successfully!')
-        return redirect('custom_admin:category_detail', category_slug=category.slug)
+        try:
+            category.save()
+            messages.success(request, f'Category "{category.name}" updated successfully!')
+            return redirect('custom_admin:category_detail', category_slug=category.slug)
+        except Exception as e:
+            messages.error(request, f'Error updating category: {str(e)}')
     
-    # Get products in this category
+    # Get products in this category and subcategories
     products = category.products.all()[:10]
     product_count = category.products.count()
+    
+    # Get subcategory products count
+    subcategory_product_count = 0
+    for child in category.get_all_children():
+        subcategory_product_count += child.products.count()
+    
+    # Get possible parent categories (exclude self and its children)
+    excluded_ids = [category.id] + [child.id for child in category.get_all_children()]
+    possible_parents = Category.objects.exclude(id__in=excluded_ids).order_by('name')
     
     context = {
         'category': category,
         'products': products,
         'product_count': product_count,
+        'subcategory_product_count': subcategory_product_count,
+        'possible_parents': possible_parents,
+        'children': category.children.all(),
+        'full_path': category.full_path,
+        'level': category.get_level(),
     }
     
     return render(request, 'custom_admin/category_detail.html', context)
 
 @admin_required
 def category_create(request):
-    """Create new category"""
+    """Create new category with optional parent"""
     
     if request.method == 'POST':
         try:
+            parent = None
+            parent_id = request.POST.get('parent')
+            if parent_id:
+                parent = Category.objects.get(id=parent_id)
+            
             category = Category.objects.create(
                 name=request.POST['name'],
                 description=request.POST.get('description', ''),
-                image=request.FILES.get('image')
+                image=request.FILES.get('image'),
+                parent=parent
             )
             messages.success(request, f'Category "{category.name}" created successfully!')
             return redirect('custom_admin:category_detail', category_slug=category.slug)
         except Exception as e:
             messages.error(request, f'Error creating category: {str(e)}')
     
-    context = {}
+    # Get all categories for parent selection
+    categories = Category.objects.all().order_by('name')
+    
+    context = {
+        'categories': categories,
+    }
     return render(request, 'custom_admin/category_create.html', context)
 
 @admin_required
 def category_delete(request, category_slug):
-    """Delete a category directly"""
+    """Delete a category with hierarchy check"""
     category = get_object_or_404(Category, slug=category_slug)
     
     # Check if category has products
     product_count = category.products.count()
     
+    # Check if category has children
+    children_count = category.children.count()
+    
     if product_count > 0:
         messages.error(request, f'Cannot delete category "{category.name}" because it contains {product_count} products. Please move or delete the products first.')
+        return redirect('custom_admin:category_detail', category_slug=category.slug)
+    
+    if children_count > 0:
+        messages.error(request, f'Cannot delete category "{category.name}" because it has {children_count} subcategories. Please move or delete the subcategories first.')
         return redirect('custom_admin:category_detail', category_slug=category.slug)
     
     # Delete the category directly

@@ -249,24 +249,28 @@
             </button>
         </div>
         <div class="categories-sidebar-body">
-            <ul class="categories-list">
-                {% for category in categories %}
-                <li>
-                    <a href="{% url 'category_products' category.slug %}">
-                        {{ category.name }}
+            <div class="categories-list">
+                {% if category_menu %}
+                    {% include 'partials/category_menu.html' with categories=category_menu %}
+                {% else %}
+                    <div class="p-3 text-muted text-center">
+                        <i class="fas fa-tags mb-2 d-block" style="font-size: 2rem; opacity: 0.5;"></i>
+                        No categories available
+                    </div>
+                {% endif %}
+                
+                <div class="category-item">
+                    <a href="{% url 'products' %}" class="category-link all-categories">
+                        <i class="fas fa-th-large me-2"></i>
+                        <span>All Products</span>
                     </a>
-                </li>
-                {% empty %}
-                <li><div class="p-3 text-muted">No categories available</div></li>
-                {% endfor %}
-                <li>
-                    <a href="{% url 'products' %}">
-                        All Categories
-                    </a>
-                </li>
-            </ul>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <!-- Categories Overlay -->
+    <div id="categoriesOverlay"></div>
     
     <!-- Categories Menu Overlay -->
     <div class="categories-overlay" id="categoriesOverlay"></div>
@@ -389,6 +393,9 @@
             window.addEventListener('offline', updateConnectionStatus);
         });
     </script>
+    
+    <!-- Categories Menu JavaScript -->
+    <script src="{% static 'js/categories-menu.js' %}?v={{ now|date:'YmdHis' }}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

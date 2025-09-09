@@ -4,18 +4,27 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=110, unique=True, blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name_plural = "Categories"
+        ordering = ['name']
         indexes = [
             models.Index(fields=['slug'], name='category_slug_idx'),
             models.Index(fields=['name'], name='category_name_idx'),
             models.Index(fields=['created_at'], name='category_created_idx'),
+            models.Index(fields=['parent'], name='category_parent_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'parent'], 
+                name='unique_category_name_per_parent'
+            )
         ]
     
     def save(self, *args, **kwargs):
@@ -38,11 +47,59 @@ class Category(models.Model):
         super().save(*args, **kwargs)
     
     def __str__(self):
+        if self.parent:
+            return f"{self.parent} > {self.name}"
         return self.name
     
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('category_products', kwargs={'category_slug': self.slug})
+    
+    @property
+    def full_path(self):
+        """Return full category path like 'Electronics > Mobile > Android'"""
+        path = [self.name]
+        parent = self.parent
+        while parent:
+            path.insert(0, parent.name)
+            parent = parent.parent
+        return ' > '.join(path)
+    
+    def get_all_children(self):
+        """Get all descendant categories recursively"""
+        children = list(self.children.all())
+        for child in list(children):
+            children.extend(child.get_all_children())
+        return children
+    
+    def get_level(self):
+        """Get the level/depth of this category in hierarchy"""
+        level = 0
+        parent = self.parent
+        while parent:
+            level += 1
+            parent = parent.parent
+        return level
+    
+    @classmethod
+    def get_root_categories(cls):
+        """Get all root categories (categories without parent)"""
+        return cls.objects.filter(parent=None)
+    
+    def is_child_of(self, category):
+        """Check if this category is a child of given category"""
+        parent = self.parent
+        while parent:
+            if parent == category:
+                return True
+            parent = parent.parent
+        return False
+    
+    def get_products_including_subcategories(self):
+        """Get all products from this category and its subcategories"""
+        from .models import Product
+        category_ids = [self.id] + [child.id for child in self.get_all_children()]
+        return Product.objects.filter(category_id__in=category_ids)
 
 class Product(models.Model):
     name = models.CharField(max_length=200)
