@@ -17,11 +17,25 @@
     <link rel="stylesheet" href="{% static 'css/mobile-categories.css' %}?v={{ now|date:'YmdHis' }}">
     <link rel="stylesheet" href="{% static 'css/desktop-categories-carousel.css' %}?v={{ now|date:'YmdHis' }}">
     
+    <!-- Dynamic Header Colors -->
+    <style>
+        .modern-header {
+            background: linear-gradient(135deg, {{ site_settings.header_bg_color|default:'#0d6efd' }} 0%, {{ site_settings.header_bg_color|default:'#0d6efd' }}dd 100%) !important;
+        }
+        .modern-header .navbar-brand {
+            color: {{ site_settings.header_text_color|default:'white' }} !important;
+        }
+        .modern-header .brand-name,
+        .modern-header .brand-tagline {
+            color: {{ site_settings.header_text_color|default:'white' }} !important;
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Enhanced Responsive Header -->
-    <header class="modern-header text-white sticky-top" style="background: linear-gradient(135deg, {{ site_settings.header_bg_color|default:'#0d6efd' }} 0%, {{ site_settings.header_bg_color|default:'#0d6efd' }}dd 100%); color: {{ site_settings.header_text_color|default:'white' }}; z-index: 1020;">
+    <header class="modern-header sticky-top" style="z-index: 1020;">
         <!-- Main header -->
         <div class="header-main">
             <div class="container-fluid px-3 px-lg-4 py-1 py-lg-2">
@@ -34,8 +48,7 @@
                                 <i class="fas fa-bars"></i>
                             </button>
                             <a class="navbar-brand fw-bold text-decoration-none d-flex align-items-center" 
-                               href="{% url 'home' %}" 
-                               style="color: {{ site_settings.header_text_color|default:'white' }};">
+                               href="{% url 'home' %}">
                                 {% if site_settings.logo %}
                                     <img src="{{ site_settings.logo.url }}" 
                                          alt="{{ site_name }}" 

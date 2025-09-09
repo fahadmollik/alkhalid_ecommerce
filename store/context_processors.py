@@ -1,11 +1,13 @@
+from .models import CartItem, Category, SiteSettings
+
 def site_settings(request):
+    """Add site settings to all templates"""
     site_settings = SiteSettings.get_current()
     return {
         'site_settings': site_settings,
         'site_name': site_settings.site_name,
         'site_tagline': site_settings.site_tagline,
     }
-from .models import CartItem, Category, SiteSettings
 
 def cart_count(request):
     """Add cart count and categories to all templates"""
@@ -19,14 +21,8 @@ def cart_count(request):
     # Add categories for navigation
     categories = Category.objects.all()
     
-    # Add site settings for branding
-    site_settings = SiteSettings.get_current()
-    
     return {
         'cart_count': total_items,
         'cart_total': total_price,
         'categories': categories,
-        'site_settings': site_settings,
-        'site_name': site_settings.site_name,
-        'site_tagline': site_settings.site_tagline,
     }
