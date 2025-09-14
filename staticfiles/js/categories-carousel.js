@@ -1,22 +1,37 @@
 // Categories Carousel JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Categories carousel script started');
+    
     const track = document.getElementById('categoriesTrack');
     const prevBtn = document.getElementById('categoryPrevBtn');
     const nextBtn = document.getElementById('categoryNextBtn');
     const indicators = document.getElementById('categoryIndicators');
     
-    if (!track) return;
+    console.log('Elements found:', {
+        track: !!track,
+        prevBtn: !!prevBtn,
+        nextBtn: !!nextBtn,
+        indicators: !!indicators
+    });
+    
+    if (!track) {
+        console.error('categoriesTrack element not found!');
+        return;
+    }
     
     let currentSlide = 0;
     const items = track.querySelectorAll('.category-item');
     
-    if (items.length === 0) return;
+    console.log('Items found:', items.length);
+    
+    if (items.length === 0) {
+        console.error('No category items found!');
+        return;
+    }
     
     // Get responsive settings for slides
     function getResponsiveSettings() {
         const containerWidth = track.parentElement.offsetWidth;
-        const itemWidth = items[0].offsetWidth;
-        const gap = 15;
         
         // Determine items per slide based on screen width
         let itemsPerSlide;
@@ -28,13 +43,18 @@ document.addEventListener('DOMContentLoaded', function() {
             itemsPerSlide = 6; // Desktop: 6 items per slide
         }
         
+        // Calculate slide width based on container
+        const slideWidth = containerWidth;
+        
+        // Calculate ACTUAL total slides based on content
         const totalSlides = Math.ceil(items.length / itemsPerSlide);
+        const maxSlide = Math.max(0, totalSlides - 1);
         
         return {
-            itemWidth: itemWidth + gap,
+            slideWidth: slideWidth,
             itemsPerSlide: itemsPerSlide,
             totalSlides: totalSlides,
-            maxSlide: totalSlides - 1
+            maxSlide: maxSlide
         };
     }
     
@@ -42,35 +62,62 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update carousel position
     function updateCarousel() {
-        // Ensure currentSlide doesn't exceed bounds
+        // Recalculate settings in case of window resize
+        settings = getResponsiveSettings();
+        
+        // Ensure currentSlide doesn't exceed valid bounds
         currentSlide = Math.max(0, Math.min(currentSlide, settings.maxSlide));
         
-        const slideOffset = currentSlide * settings.itemsPerSlide;
-        
-        // Calculate translateX with proper bounds checking
-        let translateX = -(slideOffset * settings.itemWidth);
-        
-        // Ensure we don't scroll past the last item
-        const maxTranslateX = -((items.length - settings.itemsPerSlide) * settings.itemWidth);
-        if (translateX < maxTranslateX) {
-            translateX = maxTranslateX;
+        // Validate that current slide has content
+        const slideStartItem = currentSlide * settings.itemsPerSlide;
+        if (slideStartItem >= items.length && currentSlide > 0) {
+            // Current slide has no content, go to last valid slide
+            currentSlide = Math.floor((items.length - 1) / settings.itemsPerSlide);
         }
+        
+        // Calculate how many slides to skip
+        const slidesToSkip = currentSlide;
+        
+        // Move by full container width per slide
+        const translateX = -(slidesToSkip * settings.slideWidth);
         
         track.style.transform = `translateX(${translateX}px)`;
         
-        // Update button states
+        // Update button states - check if next slide has content
+        const hasNextSlide = (currentSlide + 1) * settings.itemsPerSlide < items.length;
+        const hasPrevSlide = currentSlide > 0;
+        
         if (prevBtn) {
-            prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
-            prevBtn.disabled = currentSlide === 0;
+            prevBtn.style.opacity = hasPrevSlide ? '1' : '0.5';
+            prevBtn.disabled = !hasPrevSlide;
         }
         
         if (nextBtn) {
-            nextBtn.style.opacity = currentSlide >= settings.maxSlide ? '0.5' : '1';
-            nextBtn.disabled = currentSlide >= settings.maxSlide;
+            nextBtn.style.opacity = hasNextSlide ? '1' : '0.5';
+            nextBtn.disabled = !hasNextSlide;
+        }
+        
+        // Hide navigation if all items fit in one view
+        if (settings.totalSlides <= 1) {
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+        } else {
+            if (prevBtn) prevBtn.style.display = 'flex';
+            if (nextBtn) nextBtn.style.display = 'flex';
         }
         
         // Update indicators
         updateIndicators();
+        
+        console.log('Carousel sliding:', {
+            currentSlide,
+            slidesToSkip: currentSlide,
+            slideWidth: settings.slideWidth,
+            translateX,
+            hasNextSlide,
+            hasPrevSlide,
+            totalSlides: settings.totalSlides
+        });
     }
     
     // Update active indicator
@@ -95,25 +142,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 indicator.classList.remove('active');
             }
         });
-    }    // Navigation event listeners
+    }
+    
+    // Navigation event listeners
     if (prevBtn) {
+        console.log('Adding prevBtn click listener');
         prevBtn.addEventListener('click', function(e) {
+            console.log('Previous button clicked! Current slide:', currentSlide);
             e.preventDefault();
+            e.stopPropagation();
+            
             if (currentSlide > 0) {
                 currentSlide--;
+                console.log('Moving to slide:', currentSlide);
                 updateCarousel();
+            } else {
+                console.log('Already at first slide');
             }
         });
+    } else {
+        console.error('Previous button not found!');
     }
     
     if (nextBtn) {
+        console.log('Adding nextBtn click listener');
         nextBtn.addEventListener('click', function(e) {
+            console.log('Next button clicked! Current slide:', currentSlide);
             e.preventDefault();
-            if (currentSlide < settings.maxSlide) {
+            e.stopPropagation();
+            
+            // Check if next slide would have content
+            const nextSlideStartItem = (currentSlide + 1) * settings.itemsPerSlide;
+            console.log('Next slide start item:', nextSlideStartItem, 'Total items:', items.length);
+            
+            if (nextSlideStartItem < items.length) {
                 currentSlide++;
+                console.log('Moving to slide:', currentSlide);
                 updateCarousel();
+            } else {
+                console.log('No more slides available');
             }
         });
+    } else {
+        console.error('Next button not found!');
     }
     
     // Touch/swipe support for mobile
@@ -147,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentX = e.touches[0].clientX;
         const deltaX = currentX - startX;
         
-        // Calculate the maximum allowed translation
-        const maxTranslateX = -((items.length - settings.itemsPerSlide) * settings.itemWidth);
+        // Calculate the maximum allowed translation (last slide position)
+        const maxTranslateX = -(settings.maxSlide * settings.slideWidth);
         
         // Apply resistance when trying to go beyond boundaries
         let translateX = startTranslateX + deltaX;
@@ -181,9 +252,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const threshold = velocity > 0.5 ? 30 : 80;
         
         if (Math.abs(diff) > threshold) {
-            if (diff > 0 && currentSlide < settings.maxSlide) {
-                // Swipe left - next slide
-                currentSlide++;
+            if (diff > 0) {
+                // Swipe left - next slide (only if it has content)
+                const nextSlideStartItem = (currentSlide + 1) * settings.itemsPerSlide;
+                if (nextSlideStartItem < items.length) {
+                    currentSlide++;
+                }
             } else if (diff < 0 && currentSlide > 0) {
                 // Swipe right - previous slide
                 currentSlide--;
@@ -198,8 +272,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function startAutoAdvance() {
         autoAdvanceInterval = setInterval(() => {
-            if (currentSlide >= settings.maxSlide) {
-                currentSlide = 0;
+            // Check if next slide would have content
+            const nextSlideStartItem = (currentSlide + 1) * settings.itemsPerSlide;
+            if (nextSlideStartItem >= items.length) {
+                currentSlide = 0; // Go to first slide if next would be empty
             } else {
                 currentSlide++;
             }
