@@ -183,31 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Main.js initialization complete');
 });
 
-function updateCartCount() {
-    // This function would make an AJAX request to get updated cart count
-    // For now, we'll just increment the visible count
-    const cartBadge = document.querySelector('.badge');
-    if (cartBadge) {
-        const currentCount = parseInt(cartBadge.textContent) || 0;
-        cartBadge.textContent = currentCount + 1;
-        
-        // Show the badge if it was hidden
-        cartBadge.style.display = 'inline-block';
-    }
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
+// Utility Functions (Global scope)
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -226,51 +202,17 @@ function openImageModal(src, alt) {
                 </div>
                 <div class="modal-body text-center">
                     <img src="${src}" alt="${alt}" class="img-fluid">
-            // Add to cart functionality with AJAX
-            document.body.addEventListener('submit', function(e) {
-                const form = e.target.closest('.add-to-cart-form');
-                if (!form) return;
-                e.preventDefault();
-                let button = form.querySelector('button[type="submit"]');
-                if (!button) {
-                    console.error('Add to cart button not found in form:', form);
-                    return;
-                }
-                const originalHTML = button.innerHTML;
-                button.innerHTML = '<span class="loading"></span>';
-                button.disabled = true;
-                const formData = new FormData(form);
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert(data.message, 'success');
-                        updateCartCount();
-                        button.innerHTML = '<i class="fas fa-check"></i>';
-                        button.classList.add('added-to-cart');
-                        button.disabled = true;
-                        console.log('Cart add success, button updated, reloading...');
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 700);
-                    } else {
-                        showAlert(data.message || 'Error adding to cart', 'danger');
-                        button.innerHTML = originalHTML;
-                        button.disabled = false;
-                        console.log('Cart add failed:', data);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('Error adding to cart', 'danger');
-                    button.innerHTML = originalHTML;
-                    button.disabled = false;
-                });
-            });
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    // Remove modal from DOM when hidden
+    modal.addEventListener('hidden.bs.modal', function() {
+        document.body.removeChild(modal);
+    });
+}
