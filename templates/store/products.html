@@ -90,12 +90,14 @@
                 <div class="col-lg-4 col-md-6 col-6">
                     <div class="product-card bg-white rounded shadow-sm h-100 hover-lift">
                         <div class="product-image-container position-relative">
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
-                                     onerror="this.src='/static/images/no-image.png';">
-                            {% else %}
-                                <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
-                            {% endif %}
+                            <a href="{% url 'product_detail' product.slug %}" class="d-block">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image" 
+                                         onerror="this.src='/static/images/no-image.png';">
+                                {% else %}
+                                    <img src="/static/images/no-image.png" alt="{{ product.name }}" class="product-image">
+                                {% endif %}
+                            </a>
                             <div class="product-overlay">
                                 <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary btn-sm me-2">
                                     <i class="fas fa-eye"></i> <span class="d-none d-md-inline">View</span>
@@ -130,7 +132,7 @@
                         <div class="p-3">
                             <h5 class="product-title mb-2">
                                 <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
-                                    {{ product.name }}
+                                    {{ product.name|slice:":30" }}{% if product.name|length > 30 %}...{% endif %}
                                 </a>
                             </h5>
                             <p class="text-primary small mb-2 d-none d-sm-block">
@@ -138,40 +140,44 @@
                             </p>
                             
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="price-section">
-                                    {% if product.has_discount %}
-                                    <div class="d-flex flex-column">
-                                        <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
-                                        <span class="price fw-bold text-primary fs-5">৳{{ product.price }}</span>
+                                <div class="w-100">
+                                    <div class="price-section mb-2">
+                                        {% if product.has_discount %}
+                                        <div class="d-flex flex-column">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                                <small class="text-muted text-decoration-line-through">৳{{ product.original_price }}</small>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="price fw-bold text-primary">৳{{ product.price }}</span>
+                                        {% endif %}
                                     </div>
+                                    {% if product.is_in_stock %}
+                                    {% if product.id in cart_product_ids %}
+                                    <button class="btn btn-success btn-sm" disabled>
+                                        Added
+                                    </button>
                                     {% else %}
-                                    <span class="price fw-bold text-primary fs-5">৳{{ product.price }}</span>
+                                    <div class="d-flex gap-2">
+                                        <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
+                                                Add to Cart
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
+                                            Buy Now
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        Out of Stock
+                                    </button>
                                     {% endif %}
                                 </div>
-                                {% if product.is_in_stock %}
-                                {% if product.id in cart_product_ids %}
-                                <button class="btn btn-success btn-sm" disabled>
-                                    <i class="fas fa-check"></i> <span class="d-none d-md-inline">Added</span>
-                                </button>
-                                {% else %}
-                                <div class="d-flex gap-2">
-                                    <form method="post" action="{% url 'add_to_cart' product.id %}" class="add-to-cart-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn btn-success btn-sm" title="Add to Cart">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </button>
-                                    </form>
-                                    <a href="{% url 'buy_now' product.id %}" class="btn btn-danger btn-sm" title="Buy Now">
-                                        <i class="fas fa-bolt"></i>
-                                    </a>
-                                </div>
-                                {% endif %}
-                                {% else %}
-                                <button class="btn btn-secondary btn-sm" disabled>
-                                    <i class="fas fa-times"></i> <span class="d-none d-md-inline">Out of Stock</span>
-                                </button>
-                                {% endif %}
                             </div>
                             
                             <!-- Removed stock count display for cleaner UI -->

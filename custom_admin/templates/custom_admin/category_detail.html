@@ -3,19 +3,30 @@
 {% block title %}{{ category.name }}{% endblock %}
 
 {% block content %}
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-0">{{ category.name }}</h1>
-            <p class="text-muted">Edit category details and manage settings</p>
+<div class="content-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-2">
+                <h1 class="h3 mb-0 text-primary me-3">
+                    <i class="bi bi-tag me-2"></i>{{ category.name }}
+                </h1>
+                <span class="badge bg-primary">Level {{ level }}</span>
+            </div>
+            <div class="breadcrumb-path mb-2">
+                <i class="bi bi-house me-1"></i>
+                <span class="text-muted">{{ full_path }}</span>
+            </div>
+            <p class="text-muted mb-0">Edit category details and manage hierarchy</p>
         </div>
-        <div>
-            <a href="{% url 'custom_admin:category_list' %}" class="btn btn-outline-secondary me-2">
-                <i class="bi bi-arrow-left"></i> Back to Categories
-            </a>
-            <a href="{% url 'category_products' category.slug %}" target="_blank" class="btn btn-outline-success">
-                <i class="bi bi-eye"></i> View Category
-            </a>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                <a href="{% url 'custom_admin:category_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back
+                </a>
+                <a href="{% url 'category_products' category.slug %}" target="_blank" class="btn btn-success">
+                    <i class="bi bi-eye me-2"></i>View Store
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -29,6 +40,36 @@
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    
+                    <!-- Hierarchy Information -->
+                    <div class="mb-3">
+                        <label class="form-label">Category Hierarchy</label>
+                        <div class="card bg-light">
+                            <div class="card-body py-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-info me-2">Level {{ level }}</span>
+                                    <span class="text-muted">{{ full_path }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="parent" class="form-label">Parent Category</label>
+                        <select class="form-select" id="parent" name="parent">
+                            <option value="">No parent (Root category)</option>
+                            {% for possible_parent in possible_parents %}
+                                <option value="{{ possible_parent.id }}" 
+                                        {% if category.parent and possible_parent.id == category.parent.id %}selected{% endif %}>
+                                    {{ possible_parent.full_path }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i> 
+                            Change parent to move this category in the hierarchy
+                        </div>
+                    </div>
                     
                     <div class="mb-3">
                         <label for="name" class="form-label">Category Name *</label>
@@ -85,19 +126,75 @@
                 <h6 class="card-title mb-0"><i class="bi bi-bar-chart"></i> Category Statistics</h6>
             </div>
             <div class="card-body">
-                <div class="row text-center">
+                <div class="row text-center mb-3">
                     <div class="col-6">
                         <div class="border-end">
                             <h4 class="text-primary mb-1">{{ product_count }}</h4>
-                            <small class="text-muted">Total Products</small>
+                            <small class="text-muted">Direct Products</small>
                         </div>
                     </div>
                     <div class="col-6">
-                        <h4 class="text-success mb-1">{{ category.slug|length }}</h4>
-                        <small class="text-muted">Slug Length</small>
+                        <h4 class="text-success mb-1">{{ subcategory_product_count }}</h4>
+                        <small class="text-muted">Subcategory Products</small>
                     </div>
                 </div>
+                
+                <!-- Hierarchy Info -->
+                <div class="text-center mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Level:</span>
+                        <span class="badge bg-info">{{ level }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Children:</span>
+                        <span class="badge bg-secondary">{{ children.count }}</span>
+                    </div>
+                    {% if category.parent %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Parent:</span>
+                            <a href="{% url 'custom_admin:category_detail' category.parent.slug %}" 
+                               class="badge bg-outline-primary text-decoration-none">
+                                {{ category.parent.name }}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
+        </div>
+        
+        <!-- Subcategories -->
+        {% if children %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-diagram-2"></i> Subcategories ({{ children.count }})
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for child in children %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ child.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ child.products.count }} products</small>
+                        </div>
+                        <a href="{% url 'custom_admin:category_detail' child.slug %}" 
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% if not forloop.last %}<hr class="my-2">{% endif %}
+                {% endfor %}
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'custom_admin:category_create' %}?parent={{ category.id }}" 
+                       class="btn btn-sm btn-success">
+                        <i class="bi bi-plus-circle"></i> Add Subcategory
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         </div>
         
         <!-- Recent Products -->

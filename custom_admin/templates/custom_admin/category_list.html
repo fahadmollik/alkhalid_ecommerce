@@ -3,125 +3,387 @@
 {% block title %}Categories{% endblock %}
 
 {% block content %}
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-0">Categories</h1>
-            <p class="text-muted">Organize your product catalog</p>
+<div class="content-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="h3 mb-2 text-primary">
+                <i class="bi bi-diagram-3 me-2"></i>Categories Management
+            </h1>
+            <p class="text-muted mb-1">Organize your products with hierarchical categories</p>
+            <div class="d-flex gap-3">
+                <span class="badge bg-light text-dark">
+                    <i class="bi bi-collection me-1"></i>{{ total_categories }} Total
+                </span>
+                <span class="badge bg-primary">
+                    <i class="bi bi-house me-1"></i>{{ root_categories_count }} Root Categories
+                </span>
+            </div>
         </div>
-        <a href="{% url 'custom_admin:category_create' %}" class="btn btn-primary btn-custom">
-            <i class="bi bi-plus-circle"></i> Add Category
-        </a>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'custom_admin:category_create' %}" class="btn btn-primary btn-lg shadow-sm">
+                <i class="bi bi-plus-circle me-2"></i>Add New Category
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- Categories Grid -->
-<div class="row">
-    {% for category in categories %}
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card">
-                {% if category.image %}
-                    <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
-                {% else %}
-                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+<!-- Search and View Controls -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <form method="get" class="d-flex gap-2">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0" 
+                               placeholder="Search categories..." value="{{ search_query }}"
+                               style="box-shadow: none;">
                     </div>
-                {% endif %}
-                
-                <div class="card-body">
-                    <h5 class="card-title">{{ category.name }}</h5>
-                    <p class="card-text text-muted">{{ category.description|truncatechars:100 }}</p>
+                    <button type="submit" class="btn btn-outline-primary">
+                        Search
+                    </button>
+                    {% if search_query %}
+                        <a href="{% url 'custom_admin:category_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i>
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-end gap-2">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="view-mode" id="tree-view" {% if not search_query and category_tree %}checked{% endif %}>
+                        <label class="btn btn-outline-secondary" for="tree-view">
+                            <i class="bi bi-diagram-3 me-1"></i>Tree
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="view-mode" id="grid-view" {% if search_query or not category_tree %}checked{% endif %}>
+                        <label class="btn btn-outline-secondary" for="grid-view">
+                            <i class="bi bi-grid-3x3 me-1"></i>Grid
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hierarchical Tree View -->
+{% if not search_query and category_tree %}
+<div id="tree-view-content" {% if search_query %}style="display: none;"{% endif %}>
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary">
+                    <i class="bi bi-diagram-3 me-2"></i>Category Hierarchy
+                </h5>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if category_tree %}
+                {% include 'custom_admin/partials/category_tree_simple.html' with categories=category_tree %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-diagram-3 text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">No Categories Yet</h4>
+                    <p class="text-muted mb-4">Start organizing your products by creating your first category</p>
+                    <a href="{% url 'custom_admin:category_create' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Create Your First Category
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Grid View (for search results or when grid view is selected) -->
+<div id="grid-view-content" {% if not search_query %}style="display: none;"{% endif %}>
+    <div class="row">
+        {% for category in categories %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if category.image %}
+                        <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                    {% endif %}
                     
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">{{ category.product_count }} products</span>
-                        <div class="btn-group btn-group-sm">
-                            <a href="{% url 'custom_admin:category_detail' category.slug %}" 
-                               class="btn btn-outline-primary" title="Edit Category">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="{% url 'category_products' category.slug %}" target="_blank" 
-                               class="btn btn-outline-success" title="View Category">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="{% url 'custom_admin:category_delete' category.slug %}" 
-                               class="btn btn-outline-danger" title="Delete Category"
-                               onclick="return confirm('Are you sure you want to delete {{ category.name }}? This action cannot be undone.')">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            {% if category.parent %}
+                                <small class="text-muted">
+                                    <i class="bi bi-arrow-return-right"></i> 
+                                    {{ category.full_path }}
+                                </small>
+                            {% else %}
+                                <small class="text-primary">
+                                    <i class="bi bi-house"></i> Root Category
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <h5 class="card-title">{{ category.name }}</h5>
+                        <p class="card-text text-muted flex-grow-1">{{ category.description|truncatechars:100 }}</p>
+                        
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary">{{ category.products.count }} products</span>
+                                {% if category.children.count > 0 %}
+                                    <span class="badge bg-success">{{ category.children.count }} subcategories</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'custom_admin:category_detail' category.slug %}" 
+                                   class="btn btn-outline-primary btn-sm" title="Edit Category">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'category_products' category.slug %}" target="_blank" 
+                                   class="btn btn-outline-success btn-sm" title="View Category">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'custom_admin:category_delete' category.slug %}" 
+                                   class="btn btn-outline-danger btn-sm" title="Delete Category"
+                                   onclick="return confirm('Are you sure you want to delete {{ category.name }}? This action cannot be undone.')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    {% empty %}
-        <div class="col-12">
-            <div class="text-center py-5">
-                <i class="bi bi-tags text-muted" style="font-size: 4rem;"></i>
-                <h3 class="text-muted mt-3">No Categories Found</h3>
-                <p class="text-muted">Start organizing your products by creating categories</p>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-                    <i class="bi bi-plus-circle"></i> Create First Category
-                </button>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-tags text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="text-muted mt-3">No Categories Found</h3>
+                    {% if search_query %}
+                        <p class="text-muted">No categories match your search "{{ search_query }}"</p>
+                        <a href="{% url 'custom_admin:category_list' %}" class="btn btn-secondary">Clear Search</a>
+                    {% else %}
+                        <p class="text-muted">Start organizing your products by creating categories</p>
+                        <a href="{% url 'custom_admin:category_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create First Category
+                        </a>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if categories.has_other_pages %}
+        <nav aria-label="Categories pagination">
+            <ul class="pagination justify-content-center">
+                {% if categories.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ categories.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for num in categories.paginator.page_range %}
+                    {% if categories.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > categories.number|add:'-3' and num < categories.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if categories.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ categories.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 </div>
+{% endblock %}
 
-<!-- Create Category Modal -->
-<div class="modal fade" id="createCategoryModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create">
-                
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Category</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Category Name *</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+<!-- Quick Actions Floating Button -->
+<div class="position-fixed" style="bottom: 30px; right: 30px; z-index: 1000;">
+    <div class="dropup">
+        <button class="btn btn-primary btn-lg rounded-circle shadow-lg" 
+                type="button" id="quickActionsBtn" data-bs-toggle="dropdown" 
+                style="width: 60px; height: 60px;">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li>
+                <h6 class="dropdown-header">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h6>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'custom_admin:category_create' %}">
+                    <i class="bi bi-plus-circle me-2 text-primary"></i>
+                    <div>
+                        <strong>Create Root Category</strong>
+                        <small class="d-block text-muted">Add a main category</small>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" href="{% url 'custom_admin:product_create' %}">
+                    <i class="bi bi-box me-2 text-success"></i>
+                    <div>
+                        <strong>Add Product</strong>
+                        <small class="d-block text-muted">Create a new product</small>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Category Image</label>
-                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                        <div class="form-text">Upload a category image (optional)</div>
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'custom_admin:category_list' %}">
+                    <i class="bi bi-arrow-clockwise me-2 text-info"></i>
+                    <div>
+                        <strong>Refresh View</strong>
+                        <small class="d-block text-muted">Reload category list</small>
                     </div>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Category</button>
-                </div>
-            </form>
-        </div>
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
 
-<!-- Delete Category Form (Hidden) -->
-<form id="deleteCategoryForm" method="post" style="display: none;">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="delete">
-    <input type="hidden" name="category_id" id="deleteCategoryId">
-</form>
-{% endblock %}
-
 {% block extra_js %}
 <script>
-function deleteCategory(categoryId, categoryName) {
-    if (confirm(`Are you sure you want to delete the category "${categoryName}"? This action cannot be undone.`)) {
-        document.getElementById('deleteCategoryId').value = categoryId;
-        document.getElementById('deleteCategoryForm').submit();
+document.addEventListener('DOMContentLoaded', function() {
+    const treeViewBtn = document.getElementById('tree-view');
+    const gridViewBtn = document.getElementById('grid-view');
+    const treeViewContent = document.getElementById('tree-view-content');
+    const gridViewContent = document.getElementById('grid-view-content');
+    
+    function toggleView() {
+        if (treeViewBtn && treeViewBtn.checked) {
+            if (treeViewContent) {
+                treeViewContent.style.display = 'block';
+            }
+            if (gridViewContent) {
+                gridViewContent.style.display = 'none';
+            }
+        } else if (gridViewBtn && gridViewBtn.checked) {
+            if (treeViewContent) {
+                treeViewContent.style.display = 'none';
+            }
+            if (gridViewContent) {
+                gridViewContent.style.display = 'block';
+            }
+        }
+    }
+    
+    // Add event listeners if elements exist
+    if (treeViewBtn) {
+        treeViewBtn.addEventListener('change', toggleView);
+    }
+    if (gridViewBtn) {
+        gridViewBtn.addEventListener('change', toggleView);
+    }
+    
+    // Initialize view - ensure proper initial state
+    if (treeViewBtn && gridViewBtn) {
+        // Check if we have search results or tree data to determine default view
+        const hasSearchQuery = {% if search_query %}'{{ search_query|escapejs }}'{% else %}''{% endif %};
+        const hasTreeData = {% if category_tree %}true{% else %}false{% endif %};
+        
+        if (hasSearchQuery || !hasTreeData) {
+            gridViewBtn.checked = true;
+            treeViewBtn.checked = false;
+        } else {
+            treeViewBtn.checked = true;
+            gridViewBtn.checked = false;
+        }
+        toggleView();
+    }
+    
+    // Animate floating button on hover
+    const quickActionsBtn = document.getElementById('quickActionsBtn');
+    if (quickActionsBtn) {
+        quickActionsBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+        });
+        
+        quickActionsBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    }
+});
+</script>
+
+<style>
+/* View container visibility management */
+#tree-view-content, #grid-view-content {
+    min-height: 200px;
+    transition: opacity 0.3s ease;
+}
+
+#tree-view-content.hidden, #grid-view-content.hidden {
+    display: none !important;
+}
+
+.category-tree-simple .category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+.quick-actions-btn {
+    transition: all 0.3s ease;
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.floating-btn-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
     }
 }
-</script>
+
+/* Improved responsive design */
+@media (max-width: 768px) {
+    .content-header .row {
+        text-align: center;
+    }
+    
+    .content-header .col-md-4 {
+        margin-top: 1rem;
+    }
+    
+    .position-fixed {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .btn-lg.rounded-circle {
+        width: 50px;
+        height: 50px;
+    }
+}
+</style>
 {% endblock %}

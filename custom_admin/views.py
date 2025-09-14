@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import json
 
-from store.models import Product, Category, Order, OrderItem, HeroBanner, SiteSettings, UserVisit, OnlineUser, OrderStatusHistory, DeliveryOption
+from store.models import Product, Category, Order, OrderItem, HeroBanner, SiteSettings, UserVisit, OnlineUser, OrderStatusHistory, DeliveryOption, ProductImage
 
 # Check if user is staff
 def is_staff(user):
@@ -206,31 +206,53 @@ def product_detail(request, product_slug):
     product = get_object_or_404(Product, slug=product_slug)
     
     if request.method == 'POST':
-        # Update product
-        product.name = request.POST.get('name', product.name)
-        product.description = request.POST.get('description', product.description)
-        product.price = float(request.POST.get('price', product.price))
+        # Handle different form actions
+        action = request.POST.get('action', 'update_product')
         
-        # Handle original price for discount functionality
-        original_price = request.POST.get('original_price', '').strip()
-        if original_price:
-            product.original_price = float(original_price)
-        else:
-            product.original_price = None
+        if action == 'update_product':
+            # Update product
+            product.name = request.POST.get('name', product.name)
+            product.description = request.POST.get('description', product.description)
+            product.price = float(request.POST.get('price', product.price))
             
-        product.stock_quantity = int(request.POST.get('stock', product.stock_quantity))
-        product.category_id = request.POST.get('category', product.category_id)
+            # Handle original price for discount functionality
+            original_price = request.POST.get('original_price', '').strip()
+            if original_price:
+                product.original_price = float(original_price)
+            else:
+                product.original_price = None
+                
+            product.stock_quantity = int(request.POST.get('stock', product.stock_quantity))
+            product.category_id = request.POST.get('category', product.category_id)
+            
+            # Handle YouTube URL
+            youtube_url = request.POST.get('youtube_url', '').strip()
+            product.youtube_url = youtube_url if youtube_url else None
+            
+            # Handle image upload
+            if 'image' in request.FILES:
+                product.image = request.FILES['image']
+            
+            product.save()
+            messages.success(request, f'Product "{product.name}" updated successfully!')
+            
+        elif action == 'add_images':
+            # Handle multiple image uploads
+            images = request.FILES.getlist('additional_images')
+            if images:
+                added_count = 0
+                for image in images:
+                    ProductImage.objects.create(
+                        product=product,
+                        image=image,
+                        alt_text=request.POST.get('alt_text', ''),
+                        order=ProductImage.objects.filter(product=product).count()
+                    )
+                    added_count += 1
+                messages.success(request, f'{added_count} image(s) added successfully!')
+            else:
+                messages.warning(request, 'Please select at least one image to upload.')
         
-        # Handle YouTube URL
-        youtube_url = request.POST.get('youtube_url', '').strip()
-        product.youtube_url = youtube_url if youtube_url else None
-        
-        # Handle image upload
-        if 'image' in request.FILES:
-            product.image = request.FILES['image']
-        
-        product.save()
-        messages.success(request, f'Product "{product.name}" updated successfully!')
         return redirect('custom_admin:product_detail', product_slug=product.slug)
     
     categories = Category.objects.all()
@@ -238,10 +260,14 @@ def product_detail(request, product_slug):
     # Get order history for this product
     order_items = product.orderitem.select_related('order')[:10]
     
+    # Get additional images for this product
+    additional_images = product.additional_images.all()
+    
     context = {
         'product': product,
         'categories': categories,
         'order_items': order_items,
+        'additional_images': additional_images,
     }
     
     return render(request, 'custom_admin/product_detail.html', context)
@@ -266,6 +292,17 @@ def product_create(request):
                 image=request.FILES.get('image'),
                 youtube_url=request.POST.get('youtube_url', '').strip() or None
             )
+            
+            # Handle additional images
+            additional_images = request.FILES.getlist('additional_images')
+            for i, image in enumerate(additional_images):
+                ProductImage.objects.create(
+                    product=product,
+                    image=image,
+                    alt_text=request.POST.get('alt_text', ''),
+                    order=i
+                )
+            
             messages.success(request, f'Product "{product.name}" created successfully!')
             return redirect('custom_admin:product_detail', product_slug=product.slug)
         except Exception as e:
@@ -278,6 +315,39 @@ def product_create(request):
     }
     
     return render(request, 'custom_admin/product_create.html', context)
+
+
+@admin_required
+def product_image_delete(request, image_id):
+    """Delete a product image"""
+    image = get_object_or_404(ProductImage, id=image_id)
+    product_slug = image.product.slug
+    
+    if request.method == 'POST':
+        image.delete()
+        messages.success(request, 'Image deleted successfully!')
+    
+    return redirect('custom_admin:product_detail', product_slug=product_slug)
+
+
+@admin_required
+def product_image_reorder(request):
+    """Reorder product images via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            image_orders = data.get('image_orders', [])
+            
+            for item in image_orders:
+                image_id = item.get('id')
+                new_order = item.get('order')
+                ProductImage.objects.filter(id=image_id).update(order=new_order)
+            
+            return JsonResponse({'success': True, 'message': 'Images reordered successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 @admin_required
 def product_delete(request, product_slug):
@@ -463,34 +533,7 @@ def banner_management(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        if action == 'create':
-            try:
-                banner = HeroBanner.objects.create(
-                    title=request.POST['title'],
-                    subtitle=request.POST.get('subtitle', ''),
-                    button_text=request.POST.get('button_text', 'Shop Now'),
-                    button_url=request.POST.get('button_url', ''),
-                    order=int(request.POST.get('order', 0)),
-                    is_active='is_active' in request.POST,
-                    image=request.FILES.get('image')
-                )
-                messages.success(request, f'Banner "{banner.title}" created successfully!')
-            except Exception as e:
-                messages.error(request, f'Error creating banner: {str(e)}')
-        
-        elif action == 'delete':
-            banner_id = request.POST.get('banner_id')
-            try:
-                banner = HeroBanner.objects.get(id=banner_id)
-                banner_title = banner.title
-                banner.delete()
-                messages.success(request, f'Banner "{banner_title}" deleted successfully!')
-            except HeroBanner.DoesNotExist:
-                messages.error(request, 'Banner not found')
-            except Exception as e:
-                messages.error(request, f'Error deleting banner: {str(e)}')
-        
-        elif action == 'toggle':
+        if action == 'toggle':
             banner_id = request.POST.get('banner_id')
             try:
                 banner = HeroBanner.objects.get(id=banner_id)
@@ -508,6 +551,94 @@ def banner_management(request):
     context = {
         'banners': banners,
     }
+    return render(request, 'custom_admin/banner_management.html', context)
+
+
+@admin_required
+def banner_create(request):
+    """Create new banner"""
+    
+    if request.method == 'POST':
+        try:
+            banner = HeroBanner.objects.create(
+                title=request.POST['title'],
+                subtitle=request.POST.get('subtitle', ''),
+                button_text=request.POST.get('button_text', 'Shop Now'),
+                button_url=request.POST.get('button_url', ''),
+                order=int(request.POST.get('order', 0)),
+                is_active='is_active' in request.POST,
+                image=request.FILES.get('image')
+            )
+            messages.success(request, f'Banner "{banner.title}" created successfully!')
+            return redirect('custom_admin:banner_detail', banner_id=banner.id)
+        except Exception as e:
+            messages.error(request, f'Error creating banner: {str(e)}')
+    
+    context = {}
+    return render(request, 'custom_admin/banner_create.html', context)
+
+
+@admin_required
+def banner_detail(request, banner_id):
+    """View and edit banner details"""
+    
+    banner = get_object_or_404(HeroBanner, id=banner_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update banner fields
+            banner.title = request.POST.get('title', banner.title)
+            banner.subtitle = request.POST.get('subtitle', banner.subtitle)
+            banner.button_text = request.POST.get('button_text', banner.button_text)
+            banner.button_url = request.POST.get('button_url', banner.button_url)
+            banner.order = int(request.POST.get('order', banner.order))
+            banner.is_active = 'is_active' in request.POST
+            
+            # Handle image upload
+            if 'image' in request.FILES:
+                banner.image = request.FILES['image']
+            
+            banner.save()
+            messages.success(request, f'Banner "{banner.title}" updated successfully!')
+            return redirect('custom_admin:banner_detail', banner_id=banner.id)
+        except Exception as e:
+            messages.error(request, f'Error updating banner: {str(e)}')
+    
+    context = {
+        'banner': banner,
+    }
+    return render(request, 'custom_admin/banner_detail.html', context)
+
+
+@admin_required
+def banner_delete(request, banner_id):
+    """Delete banner directly"""
+    
+    banner = get_object_or_404(HeroBanner, id=banner_id)
+    banner_title = banner.title
+    banner.delete()
+    messages.success(request, f'Banner "{banner_title}" deleted successfully!')
+    return redirect('custom_admin:banner_management')
+
+
+@admin_required
+def banner_reorder(request):
+    """Reorder banners via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            banner_orders = data.get('banner_orders', [])
+            
+            for item in banner_orders:
+                banner_id = item.get('id')
+                new_order = item.get('order')
+                HeroBanner.objects.filter(id=banner_id).update(order=new_order)
+            
+            return JsonResponse({'success': True, 'message': 'Banners reordered successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
     
     return render(request, 'custom_admin/banner_management.html', context)
 
@@ -692,12 +823,34 @@ def settings_view(request):
     # Get general settings from session or use defaults
     saved_settings = request.session.get('admin_settings', default_settings)
     
+    # Get database name
+    from django.conf import settings as django_settings
+    import os
+    db_settings = django_settings.DATABASES.get('default', {})
+    db_engine = db_settings.get('ENGINE', '')
+    db_name = db_settings.get('NAME', '')
+    if 'sqlite' in db_engine and db_name:
+        database_name = os.path.basename(db_name)
+    else:
+        database_name = db_name or 'Unknown'
+
+    import shutil
+    try:
+        usage = shutil.disk_usage("/")
+        total_storage = f"{usage.total // (1024 * 1024 * 1024)} GB"
+        available_storage = f"{usage.free // (1024 * 1024 * 1024)} GB"
+    except Exception:
+        total_storage = "Unknown"
+        available_storage = "Unknown"
+
     context = {
         'branding': branding,
         'admin_email': saved_settings.get('admin_email', default_settings['admin_email']),
         'items_per_page': saved_settings.get('items_per_page', default_settings['items_per_page']),
+        'database_name': database_name,
+        'total_storage': total_storage,
+        'available_storage': available_storage,
     }
-    
     return render(request, 'custom_admin/settings.html', context)
 
 
@@ -871,34 +1024,53 @@ def admin_profile(request):
 
 @admin_required
 def category_list(request):
-    """List all categories with search functionality"""
+    """List all categories with hierarchical structure and search functionality"""
     
-    categories = Category.objects.all().order_by('name')  # Add ordering to prevent pagination warning
+    # Get root categories first
+    categories = Category.objects.filter(parent=None).prefetch_related('children').order_by('name')
     
     # Search functionality
     search_query = request.GET.get('search', '')
     if search_query:
-        categories = categories.filter(
+        categories = Category.objects.filter(
             Q(name__icontains=search_query) | 
             Q(description__icontains=search_query)
-        ).order_by('name')  # Maintain ordering after filtering
+        ).order_by('name')
+    
+    # If searching, show all matching categories (not just root)
+    if not search_query:
+        # For non-search view, build hierarchical structure
+        def build_category_tree(categories):
+            tree = []
+            for category in categories:
+                tree.append({
+                    'category': category,
+                    'children': build_category_tree(category.children.order_by('name'))
+                })
+            return tree
+        
+        category_tree = build_category_tree(categories)
+    else:
+        category_tree = None
     
     # Pagination
-    paginator = Paginator(categories, 15)
+    paginator = Paginator(categories, 20)
     page_number = request.GET.get('page')
     categories_page = paginator.get_page(page_number)
     
     context = {
         'categories': categories_page,
+        'category_tree': category_tree,
         'search_query': search_query,
         'total_categories': Category.objects.count(),
+        'root_categories_count': Category.objects.filter(parent=None).count(),
     }
     
     return render(request, 'custom_admin/category_list.html', context)
 
 @admin_required
 def category_detail(request, category_slug):
-    """View and edit category details"""
+    """View and edit category details with parent/child relationships"""
     
     category = get_object_or_404(Category, slug=category_slug)
     
@@ -907,55 +1079,107 @@ def category_detail(request, category_slug):
         category.name = request.POST.get('name', category.name)
         category.description = request.POST.get('description', category.description)
         
+        # Handle parent category
+        parent_id = request.POST.get('parent')
+        if parent_id:
+            try:
+                parent_category = Category.objects.get(id=parent_id)
+                # Prevent circular reference
+                if not parent_category.is_child_of(category) and parent_category != category:
+                    category.parent = parent_category
+                else:
+                    messages.error(request, 'Cannot set parent: This would create a circular reference!')
+                    return redirect('custom_admin:category_detail', category_slug=category.slug)
+            except Category.DoesNotExist:
+                messages.error(request, 'Selected parent category does not exist!')
+                return redirect('custom_admin:category_detail', category_slug=category.slug)
+        else:
+            category.parent = None
+        
         # Handle image upload
         if 'image' in request.FILES:
             category.image = request.FILES['image']
         
-        category.save()
-        messages.success(request, f'Category "{category.name}" updated successfully!')
-        return redirect('custom_admin:category_detail', category_slug=category.slug)
+        try:
+            category.save()
+            messages.success(request, f'Category "{category.name}" updated successfully!')
+            return redirect('custom_admin:category_detail', category_slug=category.slug)
+        except Exception as e:
+            messages.error(request, f'Error updating category: {str(e)}')
     
-    # Get products in this category
+    # Get products in this category and subcategories
     products = category.products.all()[:10]
     product_count = category.products.count()
+    
+    # Get subcategory products count
+    subcategory_product_count = 0
+    for child in category.get_all_children():
+        subcategory_product_count += child.products.count()
+    
+    # Get possible parent categories (exclude self and its children)
+    excluded_ids = [category.id] + [child.id for child in category.get_all_children()]
+    possible_parents = Category.objects.exclude(id__in=excluded_ids).order_by('name')
     
     context = {
         'category': category,
         'products': products,
         'product_count': product_count,
+        'subcategory_product_count': subcategory_product_count,
+        'possible_parents': possible_parents,
+        'children': category.children.all(),
+        'full_path': category.full_path,
+        'level': category.get_level(),
     }
     
     return render(request, 'custom_admin/category_detail.html', context)
 
 @admin_required
 def category_create(request):
-    """Create new category"""
+    """Create new category with optional parent"""
     
     if request.method == 'POST':
         try:
+            parent = None
+            parent_id = request.POST.get('parent')
+            if parent_id:
+                parent = Category.objects.get(id=parent_id)
+            
             category = Category.objects.create(
                 name=request.POST['name'],
                 description=request.POST.get('description', ''),
-                image=request.FILES.get('image')
+                image=request.FILES.get('image'),
+                parent=parent
             )
             messages.success(request, f'Category "{category.name}" created successfully!')
             return redirect('custom_admin:category_detail', category_slug=category.slug)
         except Exception as e:
             messages.error(request, f'Error creating category: {str(e)}')
     
-    context = {}
+    # Get all categories for parent selection
+    categories = Category.objects.all().order_by('name')
+    
+    context = {
+        'categories': categories,
+    }
     return render(request, 'custom_admin/category_create.html', context)
 
 @admin_required
 def category_delete(request, category_slug):
-    """Delete a category directly"""
+    """Delete a category with hierarchy check"""
     category = get_object_or_404(Category, slug=category_slug)
     
     # Check if category has products
     product_count = category.products.count()
     
+    # Check if category has children
+    children_count = category.children.count()
+    
     if product_count > 0:
         messages.error(request, f'Cannot delete category "{category.name}" because it contains {product_count} products. Please move or delete the products first.')
+        return redirect('custom_admin:category_detail', category_slug=category.slug)
+    
+    if children_count > 0:
+        messages.error(request, f'Cannot delete category "{category.name}" because it has {children_count} subcategories. Please move or delete the subcategories first.')
         return redirect('custom_admin:category_detail', category_slug=category.slug)
     
     # Delete the category directly

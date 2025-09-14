@@ -1,0 +1,123 @@
+{% load static %}
+
+<div class="category-tree">
+    {% for item in categories %}
+        <div class="category-item mb-3" data-level="{{ item.category.get_level }}">
+            <div class="card border-start border-3 {% if item.category.get_level == 0 %}border-primary{% elif item.category.get_level == 1 %}border-success{% else %}border-warning{% endif %}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            {% if item.category.image %}
+                                <img src="{{ item.category.image.url }}" 
+                                     alt="{{ item.category.name }}" 
+                                     class="img-thumbnail" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center rounded" 
+                                     style="width: 60px; height: 60px;">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                {% if item.category.get_level > 0 %}
+                                    <span class="me-2">
+                                        {% for i in "x"|rjust:item.category.get_level %}
+                                            <i class="bi bi-arrow-return-right text-muted small"></i>
+                                        {% endfor %}
+                                    </span>
+                                {% endif %}
+                                
+                                <div>
+                                    <h6 class="mb-1">{{ item.category.name }}</h6>
+                                    <small class="text-muted">{{ item.category.slug }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <p class="mb-1 small">{{ item.category.description|truncatechars:80 }}</p>
+                            {% if item.category.get_level > 0 %}
+                                <small class="text-muted">
+                                    <i class="bi bi-arrow-up"></i> {{ item.category.parent.name }}
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <span class="badge bg-primary d-block mb-1">{{ item.category.products.count }} products</span>
+                                {% if item.children %}
+                                    <span class="badge bg-success">{{ item.children|length }} subcategories</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'custom_admin:category_detail' item.category.slug %}">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'category_products' item.category.slug %}" target="_blank">
+                                            <i class="bi bi-eye"></i> View Store
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-success" href="{% url 'custom_admin:category_create' %}?parent={{ item.category.id }}">
+                                            <i class="bi bi-plus-circle"></i> Add Subcategory
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" 
+                                           href="{% url 'custom_admin:category_delete' item.category.slug %}"
+                                           onclick="return confirm('Are you sure you want to delete {{ item.category.name }}? This action cannot be undone.')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Render children recursively -->
+            {% if item.children %}
+                <div class="ms-4 mt-2">
+                    {% include 'custom_admin/partials/category_tree.html' with categories=item.children %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+.category-tree .category-item {
+    transition: all 0.2s ease;
+}
+
+.category-tree .category-item:hover {
+    transform: translateX(2px);
+}
+
+.category-tree .card {
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.category-tree .card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+</style>

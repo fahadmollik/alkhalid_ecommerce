@@ -1,0 +1,62 @@
+/* Custom Admin Styles for Better Category Hierarchy */
+
+/* Category list display improvements */
+.field-indented_name {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+}
+
+/* Category form improvements */
+#id_parent {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    min-height: 200px;
+}
+
+#id_parent option {
+    padding: 4px 8px;
+    line-height: 1.4;
+}
+
+/* Improve the parent field label */
+.field-parent label {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Add some styling to the hierarchy indicators */
+.field-indented_name .level-0 {
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+.field-indented_name .level-1 {
+    color: #1976d2;
+}
+
+.field-indented_name .level-2 {
+    color: #7b1fa2;
+}
+
+.field-indented_name .level-3 {
+    color: #d84315;
+}
+
+/* Better spacing in change list */
+.field-indented_name,
+.field-get_level,
+.field-products_count {
+    text-align: left;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    #id_parent {
+        min-height: 150px;
+        font-size: 12px;
+    }
+    
+    .field-indented_name {
+        font-size: 12px;
+    }
+}

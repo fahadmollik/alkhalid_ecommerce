@@ -29,6 +29,7 @@
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    <input type="hidden" name="action" value="update_product">
                     
                     <div class="mb-3">
                         <label for="name" class="form-label">Product Name *</label>
@@ -39,7 +40,9 @@
                     
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4">{{ product.description }}</textarea>
+                        <div id="description-editor"></div>
+                        <textarea id="description" name="description" style="display: none;">{{ product.description }}</textarea>
+                        <div class="form-text">Use the editor to format your product description with rich text, lists, and links</div>
                     </div>
                     
                     <div class="row">
@@ -157,6 +160,87 @@
                          style="height: 200px;">
                         <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
                         <br><span class="text-muted">No Image</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Additional Images Section -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="bi bi-images"></i> Additional Images</h5>
+                <span class="badge bg-primary">{{ additional_images|length }}</span>
+            </div>
+            <div class="card-body">
+                <!-- Upload New Images Form -->
+                <form method="post" enctype="multipart/form-data" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_images">
+                    
+                    <div class="mb-3">
+                        <label for="additional_images" class="form-label">Upload Multiple Images</label>
+                        <input type="file" class="form-control" id="additional_images" 
+                               name="additional_images" multiple accept="image/*" required>
+                        <div class="form-text">Select multiple images to upload (Ctrl+Click or Cmd+Click)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="alt_text" class="form-label">Alt Text (Optional)</label>
+                        <input type="text" class="form-control" id="alt_text" name="alt_text" 
+                               placeholder="Alternative text for accessibility">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-sm w-100">
+                        <i class="bi bi-upload"></i> Upload Images
+                    </button>
+                </form>
+                
+                <!-- Current Additional Images -->
+                {% if additional_images %}
+                    <hr>
+                    <div class="row g-2" id="sortable-images">
+                        {% for image in additional_images %}
+                            <div class="col-6 sortable-item" data-image-id="{{ image.id }}">
+                                <div class="position-relative">
+                                    <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}" 
+                                         class="img-fluid rounded" style="height: 80px; width: 100%; object-fit: cover;">
+                                    
+                                    <!-- Image Controls -->
+                                    <div class="position-absolute top-0 end-0 m-1">
+                                        <form method="post" action="{% url 'custom_admin:product_image_delete' image.id %}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this image?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm" style="padding: 2px 6px;">
+                                                <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Drag Handle -->
+                                    <div class="position-absolute bottom-0 start-0 m-1">
+                                        <i class="bi bi-grip-vertical text-white bg-dark rounded px-1" 
+                                           style="font-size: 0.8rem; cursor: move;"></i>
+                                    </div>
+                                    
+                                    <!-- Order Badge -->
+                                    <div class="position-absolute bottom-0 end-0 m-1">
+                                        <span class="badge bg-dark">{{ image.order }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-2 text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Drag images to reorder them
+                        </small>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-images" style="font-size: 2rem;"></i>
+                        <p class="mb-0 mt-2">No additional images yet</p>
+                        <small>Upload some images to create a gallery</small>
                     </div>
                 {% endif %}
             </div>
@@ -316,9 +400,129 @@ function calculateDiscount() {
     }
 }
 
+// Initialize Quill.js Rich Text Editor
+var quill = new Quill('#description-editor', {
+    theme: 'snow',
+    placeholder: 'Enter product description...',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'align': [] }],
+            ['link'],
+            ['clean']
+        ]
+    }
+});
+
+// Load existing content into Quill
+var existingContent = document.getElementById('description').value;
+if (existingContent) {
+    quill.root.innerHTML = existingContent;
+}
+
+// Sync Quill content with hidden textarea for form submission
+quill.on('text-change', function() {
+    document.getElementById('description').value = quill.root.innerHTML;
+});
+
 // Initialize discount calculation on page load
 document.addEventListener('DOMContentLoaded', function() {
     calculateDiscount();
+    initializeImageSorting();
 });
+
+// Image sorting functionality
+function initializeImageSorting() {
+    const sortableContainer = document.getElementById('sortable-images');
+    if (!sortableContainer) return;
+    
+    // Make images sortable using HTML5 drag and drop
+    const sortableItems = sortableContainer.querySelectorAll('.sortable-item');
+    
+    sortableItems.forEach(item => {
+        item.draggable = true;
+        
+        item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.imageId);
+            this.style.opacity = '0.5';
+        });
+        
+        item.addEventListener('dragend', function(e) {
+            this.style.opacity = '1';
+        });
+        
+        item.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        item.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const draggedElement = document.querySelector(`[data-image-id="${draggedId}"]`);
+            
+            if (draggedElement !== this) {
+                // Swap elements
+                const parent = this.parentNode;
+                const nextSibling = this.nextSibling;
+                
+                parent.insertBefore(draggedElement, this);
+                parent.insertBefore(this, nextSibling);
+                
+                // Update order on server
+                updateImageOrder();
+            }
+        });
+    });
+}
+
+// Update image order on server
+function updateImageOrder() {
+    const sortableItems = document.querySelectorAll('.sortable-item');
+    const imageOrders = [];
+    
+    sortableItems.forEach((item, index) => {
+        imageOrders.push({
+            id: parseInt(item.dataset.imageId),
+            order: index
+        });
+    });
+    
+    // Send AJAX request to update order
+    fetch('{% url "custom_admin:product_image_reorder" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            image_orders: imageOrders
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update order badges
+            sortableItems.forEach((item, index) => {
+                const orderBadge = item.querySelector('.badge');
+                if (orderBadge) {
+                    orderBadge.textContent = index;
+                }
+            });
+            
+            // Show success message (optional)
+            console.log('Image order updated successfully');
+        } else {
+            console.error('Failed to update image order:', data.message);
+            // Reload page on error to reset order
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error updating image order:', error);
+        location.reload();
+    });
+}
 </script>
 {% endblock %}

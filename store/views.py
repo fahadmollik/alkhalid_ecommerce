@@ -3,13 +3,14 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Product, Category, HeroBanner, CartItem, Order, OrderItem, DeliveryOption, OrderStatusHistory
+from .models import Product, Category, HeroBanner, CartItem, Order, OrderItem, DeliveryOption, OrderStatusHistory, ProductImage
+from .forms import CheckoutForm
 import json
 
 def home(request):
     """Home page with hero banners, categories, and featured products"""
     hero_banners = HeroBanner.objects.filter(is_active=True)
-    categories = Category.objects.all()  # Get all categories for carousel
+    categories = Category.objects.all()  # Get all categories (including children) for carousel
     best_sellers = Product.objects.filter(is_best_seller=True, stock_quantity__gt=0)[:8]
     featured_products = Product.objects.filter(is_featured=True, stock_quantity__gt=0)[:4]  # Bring back featured products
     all_products = Product.objects.filter(stock_quantity__gt=0)[:12]  # Keep all products section
@@ -75,9 +76,34 @@ def products(request):
     return render(request, 'store/products.html', context)
 
 def category_products(request, category_slug):
-    """Products by category"""
+    """Products by category including subcategories"""
     category = get_object_or_404(Category, slug=category_slug)
-    product_list = Product.objects.filter(category=category, stock_quantity__gt=0)
+    
+    # Get include_subcategories parameter from URL
+    include_subcategories = request.GET.get('include_subcategories', 'true').lower() == 'true'
+    
+    if include_subcategories:
+        # Get products from this category and all its subcategories
+        category_ids = [category.id] + [child.id for child in category.get_all_children()]
+        product_list = Product.objects.filter(category_id__in=category_ids, stock_quantity__gt=0)
+        subcategory_count = len(category_ids) - 1
+    else:
+        # Get products only from this category
+        product_list = Product.objects.filter(category=category, stock_quantity__gt=0)
+        subcategory_count = 0
+    
+    # Apply sorting
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by == 'price_low':
+        product_list = product_list.order_by('price')
+    elif sort_by == 'price_high':
+        product_list = product_list.order_by('-price')
+    elif sort_by == 'newest':
+        product_list = product_list.order_by('-created_at')
+    elif sort_by == 'popular':
+        product_list = product_list.order_by('-is_best_seller', '-created_at')
+    else:
+        product_list = product_list.order_by('name')
     
     paginator = Paginator(product_list, 12)
     page_number = request.GET.get('page')
@@ -88,10 +114,19 @@ def category_products(request, category_slug):
     if request.session.session_key:
         cart_items = CartItem.objects.filter(session_key=request.session.session_key)
         cart_product_ids = list(cart_items.values_list('product_id', flat=True))
+    
+    # Get subcategories for filter
+    subcategories = category.children.all()
+    
     context = {
         'category': category,
         'products': products_page,
         'cart_product_ids': cart_product_ids,
+        'include_subcategories': include_subcategories,
+        'subcategory_count': subcategory_count,
+        'subcategories': subcategories,
+        'current_sort': sort_by,
+        'total_products': product_list.count(),
     }
     return render(request, 'store/category_products.html', context)
 
@@ -103,6 +138,9 @@ def product_detail(request, product_slug):
         stock_quantity__gt=0
     ).exclude(id=product.id)[:4]
     
+    # Get additional images for this product
+    additional_images = product.additional_images.all()
+    
     # Get cart product ids for current session
     cart_product_ids = []
     if request.session.session_key:
@@ -112,6 +150,7 @@ def product_detail(request, product_slug):
         'product': product,
         'related_products': related_products,
         'cart_product_ids': cart_product_ids,
+        'additional_images': additional_images,
     }
     return render(request, 'store/product_detail.html', context)
 
@@ -159,10 +198,12 @@ def cart(request):
     
     cart_items = CartItem.objects.filter(session_key=request.session.session_key)
     total = sum(item.total_price for item in cart_items)
+    total_quantity = sum(item.quantity for item in cart_items)
     
     context = {
         'cart_items': cart_items,
         'total': total,
+        'total_quantity': total_quantity,
     }
     return render(request, 'store/cart.html', context)
 
@@ -173,7 +214,6 @@ def update_cart(request, item_id):
         
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
-            import json
             try:
                 data = json.loads(request.body)
                 quantity = int(data.get('quantity', 1))
@@ -194,12 +234,14 @@ def update_cart(request, item_id):
                 # Calculate new totals
                 cart_items = CartItem.objects.filter(session_key=request.session.session_key)
                 cart_total = sum(item.total_price for item in cart_items)
+                total_quantity = sum(item.quantity for item in cart_items)
                 
                 return JsonResponse({
                     'success': True, 
                     'message': 'Cart updated!',
                     'item_total': float(cart_item.total_price),
                     'cart_total': float(cart_total),
+                    'total_quantity': total_quantity,
                     'item_quantity': cart_item.quantity
                 })
             messages.success(request, 'Cart updated!')
@@ -229,11 +271,13 @@ def remove_from_cart(request, item_id):
         # Calculate new totals for AJAX response
         cart_items = CartItem.objects.filter(session_key=request.session.session_key)
         cart_total = sum(item.total_price for item in cart_items)
+        total_quantity = sum(item.quantity for item in cart_items)
         
         return JsonResponse({
             'success': True, 
             'message': 'Item removed from cart!',
             'cart_total': float(cart_total),
+            'total_quantity': total_quantity,
             'cart_empty': not cart_items.exists()
         })
     
@@ -255,62 +299,57 @@ def checkout(request):
     subtotal = sum(item.total_price for item in cart_items)
     
     if request.method == 'POST':
-        # Get delivery option
-        delivery_option_id = request.POST.get('delivery_option')
-        delivery_option = None
-        delivery_fee = 0
-        
-        if delivery_option_id:
-            try:
-                delivery_option = DeliveryOption.objects.get(id=delivery_option_id, is_active=True)
-                delivery_fee = delivery_option.price
-            except DeliveryOption.DoesNotExist:
-                messages.error(request, 'Invalid delivery option selected!')
-                return redirect('checkout')
-        
-        total_amount = subtotal + delivery_fee
-        
-        # Create order
-        order = Order.objects.create(
-            customer_name=request.POST.get('customer_name'),
-            customer_email=request.POST.get('customer_email', ''),
-            customer_phone=request.POST.get('customer_phone'),
-            shipping_address=request.POST.get('shipping_address'),
-            delivery_option=delivery_option,
-            delivery_fee=delivery_fee,
-            subtotal=subtotal,
-            total_amount=total_amount,
-            notes=request.POST.get('notes', '')
-        )
-        
-        # Create initial status history entry
-        OrderStatusHistory.objects.create(
-            order=order,
-            status='pending',
-            notes='Order placed successfully via website',
-            created_by='Customer'
-        )
-        
-        # Create order items and update stock
-        for cart_item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity,
-                price=cart_item.product.price
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            # Get validated data
+            delivery_option = form.cleaned_data['delivery_option']
+            delivery_fee = delivery_option.price if delivery_option else 0
+            total_amount = subtotal + delivery_fee
+            
+            # Create order
+            order = Order.objects.create(
+                customer_name=form.cleaned_data['customer_name'],
+                customer_email=form.cleaned_data['customer_email'],
+                customer_phone=form.cleaned_data['customer_phone'],
+                shipping_address=form.cleaned_data['shipping_address'],
+                delivery_option=delivery_option,
+                delivery_fee=delivery_fee,
+                subtotal=subtotal,
+                total_amount=total_amount,
+                notes=form.cleaned_data['notes']
             )
             
-            # Update product stock
-            cart_item.product.stock_quantity -= cart_item.quantity
-            cart_item.product.save()
-        
-        # Clear cart
-        cart_items.delete()
-        
-        messages.success(request, f'Order {order.order_id} placed successfully! Your tracking number is: {order.tracking_number}')
-        return redirect('order_confirmation', order_id=order.order_id)
+            # Create initial status history entry
+            OrderStatusHistory.objects.create(
+                order=order,
+                status='pending',
+                notes='Order placed successfully via website',
+                created_by='Customer'
+            )
+            
+            # Create order items and update stock
+            for cart_item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    price=cart_item.product.price
+                )
+                
+                # Update product stock
+                cart_item.product.stock_quantity -= cart_item.quantity
+                cart_item.product.save()
+            
+            # Clear cart
+            cart_items.delete()
+            
+            messages.success(request, f'Order {order.order_id} placed successfully! Your tracking number is: {order.tracking_number}')
+            return redirect('order_confirmation', order_id=order.order_id)
+    else:
+        form = CheckoutForm()
     
     context = {
+        'form': form,
         'cart_items': cart_items,
         'subtotal': subtotal,
         'delivery_options': delivery_options,

@@ -9,9 +9,11 @@
             <h1 class="h3 mb-0">Banner Management</h1>
             <p class="text-muted">Manage homepage carousel banners</p>
         </div>
-        <button type="button" class="btn btn-primary btn-custom" data-bs-toggle="modal" data-bs-target="#createBannerModal">
-            <i class="bi bi-plus-circle"></i> Add Banner
-        </button>
+        <div>
+            <a href="{% url 'custom_admin:banner_create' %}" class="btn btn-primary btn-custom">
+                <i class="bi bi-plus-circle"></i> Add Banner
+            </a>
+        </div>
     </div>
 </div>
 
@@ -23,20 +25,20 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Preview</th>
+                            <th style="width: 150px;">Preview</th>
                             <th>Banner Details</th>
-                            <th>Order</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th style="width: 80px;">Order</th>
+                            <th style="width: 100px;">Status</th>
+                            <th style="width: 150px;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="sortable-banners">
                         {% for banner in banners %}
-                            <tr>
+                            <tr class="sortable-item" data-banner-id="{{ banner.id }}">
                                 <td>
                                     {% if banner.image %}
                                         <img src="{{ banner.image.url }}" alt="{{ banner.title }}" 
-                                             class="rounded" style="width: 120px; height: 60px; object-fit: cover;">
+                                             class="rounded shadow-sm" style="width: 120px; height: 60px; object-fit: cover;">
                                     {% else %}
                                         <div class="bg-light rounded d-flex align-items-center justify-content-center" 
                                              style="width: 120px; height: 60px;">
@@ -53,10 +55,18 @@
                                         {% if banner.button_text %}
                                             <br><span class="badge bg-info">{{ banner.button_text }}</span>
                                         {% endif %}
+                                        {% if banner.button_url %}
+                                            <br><small class="text-primary">
+                                                <i class="bi bi-link-45deg"></i> {{ banner.button_url|truncatechars:30 }}
+                                            </small>
+                                        {% endif %}
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-secondary">{{ banner.order }}</span>
+                                    <div class="mt-1">
+                                        <i class="bi bi-grip-vertical text-muted" style="cursor: move;" title="Drag to reorder"></i>
+                                    </div>
                                 </td>
                                 <td>
                                     {% if banner.is_active %}
@@ -67,6 +77,11 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'custom_admin:banner_detail' banner.id %}" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        
                                         <form method="post" style="display: inline;">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="toggle">
@@ -77,8 +92,8 @@
                                             </button>
                                         </form>
                                         
-                                        <button type="button" class="btn btn-outline-danger" 
-                                                onclick="deleteBanner({{ banner.id }}, '{{ banner.title }}')" title="Delete">
+                                        <button onclick="deleteBanner({{ banner.id }}, '{{ banner.title|escapejs }}')" 
+                                                class="btn btn-outline-danger" title="Delete">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -88,100 +103,28 @@
                     </tbody>
                 </table>
             </div>
+            
+            {% if banners|length > 1 %}
+            <div class="mt-3 text-center">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> Drag banners to reorder them
+                </small>
+            </div>
+            {% endif %}
         {% else %}
             <div class="text-center py-5">
                 <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
                 <h3 class="text-muted mt-3">No Banners Found</h3>
                 <p class="text-muted">Create attractive banners for your homepage carousel</p>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBannerModal">
+                <a href="{% url 'custom_admin:banner_create' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Create First Banner
-                </button>
+                </a>
             </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Create Banner Modal -->
-<div class="modal fade" id="createBannerModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create">
-                
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Banner</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="title" class="form-label">Banner Title *</label>
-                                <input type="text" class="form-control" id="title" name="title" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="subtitle" class="form-label">Subtitle</label>
-                                <input type="text" class="form-control" id="subtitle" name="subtitle">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="button_text" class="form-label">Button Text</label>
-                                <input type="text" class="form-control" id="button_text" name="button_text" value="Shop Now">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="button_url" class="form-label">Button URL</label>
-                                <input type="url" class="form-control" id="button_url" name="button_url" placeholder="https://...">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="order" class="form-label">Display Order</label>
-                                <input type="number" class="form-control" id="order" name="order" value="0" min="0">
-                                <div class="form-text">Lower numbers appear first</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="image" class="form-label">Banner Image *</label>
-                                <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
-                                <div class="form-text">Recommended: 1200x400px</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                            <label class="form-check-label" for="is_active">
-                                Active (visible on website)
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Banner</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Banner Form (Hidden) -->
+<!-- Hidden form for banner deletion -->
 <form id="deleteBannerForm" method="post" style="display: none;">
     {% csrf_token %}
     <input type="hidden" name="action" value="delete">
@@ -191,11 +134,108 @@
 
 {% block extra_js %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    initializeBannerSorting();
+});
+
+// Delete banner with confirmation
 function deleteBanner(bannerId, bannerTitle) {
     if (confirm(`Are you sure you want to delete the banner "${bannerTitle}"? This action cannot be undone.`)) {
-        document.getElementById('deleteBannerId').value = bannerId;
-        document.getElementById('deleteBannerForm').submit();
+        // Redirect to delete URL
+        window.location.href = `/custom-admin/banners/${bannerId}/delete/`;
     }
+}
+
+// Banner sorting functionality
+function initializeBannerSorting() {
+    const sortableContainer = document.getElementById('sortable-banners');
+    if (!sortableContainer) return;
+    
+    // Make banner rows sortable using HTML5 drag and drop
+    const sortableItems = sortableContainer.querySelectorAll('.sortable-item');
+    
+    sortableItems.forEach(item => {
+        item.draggable = true;
+        
+        item.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/plain', this.dataset.bannerId);
+            this.style.opacity = '0.5';
+        });
+        
+        item.addEventListener('dragend', function(e) {
+            this.style.opacity = '1';
+        });
+        
+        item.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        item.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const draggedElement = document.querySelector(`[data-banner-id="${draggedId}"]`);
+            
+            if (draggedElement !== this) {
+                // Swap elements
+                const parent = this.parentNode;
+                const nextSibling = this.nextSibling;
+                
+                parent.insertBefore(draggedElement, this);
+                parent.insertBefore(this, nextSibling);
+                
+                // Update order on server
+                updateBannerOrder();
+            }
+        });
+    });
+}
+
+// Update banner order on server
+function updateBannerOrder() {
+    const sortableItems = document.querySelectorAll('.sortable-item');
+    const bannerOrders = [];
+    
+    sortableItems.forEach((item, index) => {
+        bannerOrders.push({
+            id: parseInt(item.dataset.bannerId),
+            order: index
+        });
+    });
+    
+    // Send AJAX request to update order
+    fetch('{% url "custom_admin:banner_reorder" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            banner_orders: bannerOrders
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update order badges
+            sortableItems.forEach((item, index) => {
+                const orderBadge = item.querySelector('.badge');
+                if (orderBadge) {
+                    orderBadge.textContent = index;
+                }
+            });
+            
+            // Show success message (optional)
+            console.log('Banner order updated successfully');
+        } else {
+            console.error('Failed to update banner order:', data.message);
+            // Reload page on error to reset order
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error updating banner order:', error);
+        location.reload();
+    });
 }
 </script>
 {% endblock %}

@@ -18,14 +18,82 @@
     <div class="row">
         <!-- Cart Items -->
         <div class="col-lg-8">
-            <div class="card">
+            <div class="card mobile-cart-container">
                 <div class="card-header">
                     <h5 class="mb-0">Cart Items ({{ cart_items.count }})</h5>
                 </div>
                 <div class="card-body p-0">
                     {% for item in cart_items %}
-                    <div class="cart-item p-3 {% if not forloop.last %}border-bottom{% endif %}" data-item-id="{{ item.id }}">
-                        <div class="row align-items-center">
+                    <div class="cart-item mobile-cart-item p-3 {% if not forloop.last %}border-bottom{% endif %}" data-item-id="{{ item.id }}">
+                        <!-- Mobile Optimized Layout -->
+                        <div class="d-block d-md-none">
+                            <!-- Mobile: Product Image and Basic Info -->
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0 me-3">
+                                    {% if item.product.image and item.product.image.url %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="mobile-cart-image rounded">
+                                    {% else %}
+                                        <div class="mobile-cart-image-placeholder d-flex align-items-center justify-content-center bg-light rounded">
+                                            <i class="fas fa-box-open text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1 mobile-product-title">
+                                        <a href="{% url 'product_detail' item.product.slug %}" 
+                                           class="text-decoration-none text-dark">
+                                            {{ item.product.name }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted small mb-2">{{ item.product.category.name }}</p>
+                                    <div class="price-display">
+                                        {% if item.product.has_discount %}
+                                        <span class="text-muted text-decoration-line-through me-2 small">৳{{ item.product.original_price }}</span>
+                                        <span class="text-primary fw-bold mobile-price" data-price="{{ item.product.price }}">৳{{ item.product.price }}</span>
+                                        {% else %}
+                                        <span class="text-primary fw-bold mobile-price" data-price="{{ item.product.price }}">৳{{ item.product.price }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mobile: Quantity Controls and Total -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="quantity-controls">
+                                    <div class="mobile-quantity-group">
+                                        <button type="button" class="mobile-qty-btn quantity-btn" 
+                                                data-action="decrease" data-item-id="{{ item.id }}">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               value="{{ item.quantity }}" 
+                                               min="1" max="{{ item.product.stock_quantity }}"
+                                               class="mobile-qty-input quantity-input text-center"
+                                               data-item-id="{{ item.id }}"
+                                               data-price="{{ item.product.price }}"
+                                               data-update-url="{% url 'update_cart' item.id %}">
+                                        <button type="button" class="mobile-qty-btn quantity-btn" 
+                                                data-action="increase" data-item-id="{{ item.id }}" 
+                                                data-max="{{ item.product.stock_quantity }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-1 text-center">Max: {{ item.product.stock_quantity }}</small>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <p class="fw-bold text-primary mb-1 mobile-total-price item-total" data-item-id="{{ item.id }}">৳{{ item.total_price }}</p>
+                                    <button class="btn btn-outline-danger btn-sm mobile-remove-btn remove-item-btn" 
+                                            data-item-id="{{ item.id }}"
+                                            data-remove-url="{% url 'remove_from_cart' item.id %}">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Desktop Layout (existing) -->
+                        <div class="row align-items-center d-none d-md-flex">
                             <div class="col-md-2 col-4 mb-2 mb-md-0">
                                 {% if item.product.image and item.product.image.url %}
                                     <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-image img-fluid rounded">
@@ -102,24 +170,24 @@
         
         <!-- Cart Summary -->
         <div class="col-lg-4 mt-4 mt-lg-0">
-            <div class="card position-sticky" style="top: 20px;">
-                <div class="card-header">
+            <div class="card position-sticky mobile-summary-card" style="top: 20px;">
+                <div class="card-header mobile-summary-header">
                     <h5 class="mb-0">Order Summary</h5>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Subtotal (<span id="cart-item-count">{{ cart_items.count }}</span> item<span id="cart-plural">{{ cart_items.count|pluralize }}</span>):</span>
-                        <span class="fw-bold" id="cart-subtotal">৳{{ total }}</span>
+                <div class="card-body mobile-summary-body">
+                    <div class="d-flex justify-content-between mb-3 mobile-summary-row">
+                        <span class="mobile-summary-label">Subtotal (<span id="cart-item-count">{{ total_quantity }}</span> item<span id="cart-plural">{{ total_quantity|pluralize }}</span>):</span>
+                        <span class="fw-bold mobile-summary-value" id="cart-subtotal">৳{{ total }}</span>
                     </div>
                     
-                    <hr>
+                    <hr class="mobile-summary-divider">
                     
-                    <div class="d-flex justify-content-between mb-4">
-                        <span class="fw-bold fs-5">Total:</span>
-                        <span class="fw-bold fs-5 text-primary" id="cart-total">৳{{ total }}</span>
+                    <div class="d-flex justify-content-between mb-4 mobile-total-row">
+                        <span class="fw-bold fs-5 mobile-total-label">Total:</span>
+                        <span class="fw-bold fs-5 text-primary mobile-total-value" id="cart-total">৳{{ total }}</span>
                     </div>
                     
-                    <a href="{% url 'checkout' %}" class="btn btn-primary w-100 mb-3" id="checkout-btn">
+                    <a href="{% url 'checkout' %}" class="btn btn-primary w-100 mb-3 mobile-checkout-btn" id="checkout-btn">
                         <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
                     </a>
                 </div>
@@ -235,6 +303,14 @@ class DynamicCart {
         const price = parseFloat(input.dataset.price);
         const itemId = input.dataset.itemId;
         
+        // Sync all inputs for this item while typing
+        const allInputs = document.querySelectorAll(`.quantity-input[data-item-id="${itemId}"]`);
+        allInputs.forEach(inp => {
+            if (inp !== input) { // Don't update the input that's being typed in
+                inp.value = input.value;
+            }
+        });
+        
         // Update individual item price immediately
         const itemTotal = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
         if (itemTotal && quantity > 0) {
@@ -250,15 +326,20 @@ class DynamicCart {
         const button = e.target.closest('.quantity-btn');
         const action = button.dataset.action;
         const itemId = button.dataset.itemId;
-        const input = document.querySelector(`.quantity-input[data-item-id="${itemId}"]`);
+        const inputs = document.querySelectorAll(`.quantity-input[data-item-id="${itemId}"]`);
         
-        let newQuantity = parseInt(input.value);
+        let currentQuantity = parseInt(inputs[0].value);
+        let newQuantity = currentQuantity;
         
         if (action === 'increase') {
             const max = parseInt(button.dataset.max);
-            if (newQuantity < max) {
+            if (currentQuantity < max) {
                 newQuantity++;
-                input.value = newQuantity;
+                
+                // Update all inputs for this item (mobile + desktop)
+                inputs.forEach(input => {
+                    input.value = newQuantity;
+                });
                 
                 // Immediate price update
                 this.updateItemPriceDisplay(itemId, newQuantity);
@@ -270,9 +351,13 @@ class DynamicCart {
                 showAlert(`Maximum quantity is ${max}`, 'warning');
             }
         } else if (action === 'decrease') {
-            if (newQuantity > 1) {
+            if (currentQuantity > 1) {
                 newQuantity--;
-                input.value = newQuantity;
+                
+                // Update all inputs for this item (mobile + desktop)
+                inputs.forEach(input => {
+                    input.value = newQuantity;
+                });
                 
                 // Immediate price update
                 this.updateItemPriceDisplay(itemId, newQuantity);
@@ -323,18 +408,22 @@ class DynamicCart {
         const quantity = parseInt(input.value);
         const max = parseInt(input.max);
         
+        // Get all inputs for this item to keep them in sync
+        const allInputs = document.querySelectorAll(`.quantity-input[data-item-id="${itemId}"]`);
+        
         if (quantity > max) {
-            input.value = max;
+            allInputs.forEach(inp => inp.value = max);
             showAlert(`Maximum quantity is ${max}`, 'warning');
             this.updateItemPriceDisplay(itemId, max);
             this.updateCartSummary();
             this.debounceServerUpdate(itemId, max);
         } else if (quantity < 1) {
-            input.value = 1;
+            allInputs.forEach(inp => inp.value = 1);
             this.updateItemPriceDisplay(itemId, 1);
             this.updateCartSummary();
             this.debounceServerUpdate(itemId, 1);
         } else {
+            allInputs.forEach(inp => inp.value = quantity);
             this.updateItemPriceDisplay(itemId, quantity);
             this.updateCartSummary();
             this.debounceServerUpdate(itemId, quantity);
@@ -365,9 +454,6 @@ class DynamicCart {
         
         cartItem.style.opacity = '0.7';
         
-        console.log('Updating item:', itemId, 'to quantity:', quantity);
-        console.log('Update URL:', updateUrl);
-        
         // Make AJAX request to update quantity
         fetch(updateUrl, {
             method: 'POST',
@@ -386,7 +472,15 @@ class DynamicCart {
                 // Confirm the price update from server
                 itemTotal.textContent = `৳${data.item_total}`;
                 
-                // Update cart summary immediately
+                // Update cart summary with server data if available
+                if (data.total_quantity !== undefined) {
+                    const itemCountEl = document.getElementById('cart-item-count');
+                    if (itemCountEl) itemCountEl.textContent = data.total_quantity;
+                    const pluralEl = document.getElementById('cart-plural');
+                    if (pluralEl) pluralEl.textContent = data.total_quantity !== 1 ? 's' : '';
+                }
+                
+                // Update cart summary
                 this.updateCartSummary();
                 
                 // Remove loading state
@@ -421,10 +515,6 @@ class DynamicCart {
         
         cartItem.style.opacity = '0.5';
         
-        console.log('Removing item:', itemId);
-        console.log('Remove URL:', removeUrl);
-        console.log('CSRF Token:', this.getCSRFToken());
-        
         // Make AJAX request to remove item
         fetch(removeUrl, {
             method: 'POST',
@@ -435,14 +525,12 @@ class DynamicCart {
             }
         })
         .then(response => {
-            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Remove response:', data);
             if (data.success) {
                 // Remove item from DOM
                 cartItem.remove();
@@ -450,11 +538,18 @@ class DynamicCart {
                 // Update cart summary
                 this.updateCartSummary();
                 
+                // Update cart header count (distinct items)
+                const cartHeaderElement = document.querySelector('.card-header h5');
+                if (cartHeaderElement) {
+                    const remainingItems = document.querySelectorAll('.cart-item').length;
+                    cartHeaderElement.textContent = `Cart Items (${remainingItems})`;
+                }
+                
                 // Show success message
                 showAlert('Item removed from cart', 'success');
                 
                 // Check if cart is empty
-                if (data.cart_empty) {
+                if (data.cart_empty || document.querySelectorAll('.cart-item').length === 0) {
                     setTimeout(() => {
                         location.reload();
                     }, 1500);
@@ -480,10 +575,18 @@ class DynamicCart {
         let totalItems = 0;
         let totalPrice = 0;
         
+        // Track processed item IDs to avoid double counting mobile/desktop inputs
+        const processedItems = new Set();
+        
         document.querySelectorAll('.quantity-input').forEach(input => {
+            const itemId = input.dataset.itemId;
+            
+            // Skip if we've already processed this item
+            if (processedItems.has(itemId)) return;
+            processedItems.add(itemId);
+            
             const quantity = parseInt(input.value);
             const price = parseFloat(input.dataset.price);
-            const itemId = input.dataset.itemId;
             
             // Update individual item total
             const itemTotal = document.querySelector(`.item-total[data-item-id="${itemId}"]`);
@@ -557,12 +660,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // Legacy functions for compatibility (if needed elsewhere)
 function incrementQuantity(button) {
     // This is now handled by the DynamicCart class
-    console.log('Using legacy increment function - consider updating to new dynamic cart');
 }
 
 function decrementQuantity(button) {
     // This is now handled by the DynamicCart class
-    console.log('Using legacy decrement function - consider updating to new dynamic cart');
 }
 </script>
 {% endblock %}

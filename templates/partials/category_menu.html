@@ -1,0 +1,43 @@
+{% load static %}
+
+{% for item in categories %}
+    <div class="category-item" data-level="{{ item.category.get_level }}">
+        {% if item.category.get_level == 0 %}
+            <!-- Top-level category - always styled as parent -->
+            <div class="category-parent-wrapper">
+                <a href="{% url 'category_products' item.category.slug %}" 
+                   class="category-link parent-category"
+                   data-category-url="{% url 'category_products' item.category.slug %}">
+                    <span class="category-name">{{ item.category.name }}</span>
+                    {% if item.children %}
+                        <button class="category-toggle-btn" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#subcategory-{{ item.category.id }}" 
+                                aria-expanded="false"
+                                type="button">
+                            <i class="fas fa-minus category-arrow"></i>
+                        </button>
+                    {% else %}
+                        <i class="fas fa-minus parent-category-icon"></i>
+                    {% endif %}
+                </a>
+            </div>
+            
+            {% if item.children %}
+                <!-- Collapsible subcategory container -->
+                <div class="collapse subcategory-container" id="subcategory-{{ item.category.id }}">
+                    <div class="subcategory-content">
+                        {% include 'partials/category_menu.html' with categories=item.children %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- Subcategory - direct link -->
+            <a href="{% url 'category_products' item.category.slug %}" 
+               class="category-link subcategory-link">
+                <span class="category-name">{{ item.category.name }}</span>
+                <i class="fas fa-plus subcategory-icon"></i>
+            </a>
+        {% endif %}
+    </div>
+{% endfor %}

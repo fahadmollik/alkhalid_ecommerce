@@ -3,85 +3,316 @@
 {% block title %}Create Category{% endblock %}
 
 {% block content %}
-<div class="content-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-0">Create New Category</h1>
-            <p class="text-muted">Add a new product category to organize your inventory</p>
+<div class="content-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="h3 mb-2 text-primary">
+                <i class="bi bi-plus-circle me-2"></i>Create New Category
+            </h1>
+            <p class="text-muted">Add a new category to organize your products</p>
         </div>
-        <div>
+        <div class="col-md-4 text-end">
             <a href="{% url 'custom_admin:category_list' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Categories
+                <i class="bi bi-arrow-left me-2"></i>Back to Categories
             </a>
         </div>
     </div>
 </div>
 
-<div class="row justify-content-center">
+<div class="row">
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0"><i class="bi bi-plus-circle"></i> Category Information</h5>
+        <!-- Main Form Card -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-primary">
+                    <i class="bi bi-info-circle me-2"></i>Category Information
+                </h5>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="categoryForm">
                     {% csrf_token %}
                     
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Category Name *</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                        <div class="form-text">URL slug will be automatically generated from the category name</div>
+                    <!-- Parent Category Selection -->
+                    <div class="mb-4">
+                        <label for="parent" class="form-label fw-semibold">
+                            <i class="bi bi-diagram-2 me-1"></i>Parent Category
+                        </label>
+                        <select class="form-select form-select-lg" id="parent" name="parent">
+                            <option value="">🏠 Root Category (No Parent)</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" 
+                                        {% if request.GET.parent == category.id|stringformat:"s" %}selected{% endif %}>
+                                    {% if category.get_level > 0 %}
+                                        {% for i in "x"|rjust:category.get_level %}└─{% endfor %}
+                                    {% endif %}
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            <i class="bi bi-lightbulb text-warning me-1"></i>
+                            Choose a parent to create a subcategory, or leave empty for a main category
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" 
-                                  placeholder="Enter a description for this category (optional)"></textarea>
-                        <div class="form-text">Provide a brief description of what products belong in this category</div>
+                    <!-- Preview section for selected parent -->
+                    <div id="parent-preview" class="alert alert-info d-none mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <div>
+                                <strong>Creating subcategory under:</strong>
+                                <span id="parent-path" class="ms-2"></span>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Category Image</label>
+                    <!-- Category Name -->
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-semibold">
+                            <i class="bi bi-tag me-1"></i>Category Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="name" name="name" 
+                               required placeholder="e.g., Electronics, Clothing, Books">
+                        <div class="form-text">
+                            Enter a clear, descriptive name for your category
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-semibold">
+                            <i class="bi bi-text-paragraph me-1"></i>Description
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="3" 
+                                  placeholder="Brief description of what products belong in this category (optional)"></textarea>
+                        <div class="form-text">
+                            Help customers understand what they'll find in this category
+                        </div>
+                    </div>
+                    
+                    <!-- Category Image -->
+                    <div class="mb-4">
+                        <label for="image" class="form-label fw-semibold">
+                            <i class="bi bi-image me-1"></i>Category Image
+                        </label>
                         <input type="file" class="form-control" id="image" name="image" accept="image/*">
-                        <div class="form-text">Upload an image to represent this category (JPG, PNG, etc.)</div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Upload an image to represent this category (JPG, PNG, etc.)
+                        </div>
                     </div>
                     
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Create Category
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Create Category
                         </button>
-                        <a href="{% url 'custom_admin:category_list' %}" class="btn btn-secondary">Cancel</a>
+                        <a href="{% url 'custom_admin:category_list' %}" class="btn btn-light btn-lg">
+                            Cancel
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
-        
-        <!-- Help Tips -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0"><i class="bi bi-lightbulb"></i> Tips for Creating Categories</h6>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Help Tips Card -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Quick Tips
+                </h6>
             </div>
             <div class="card-body">
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>Clear Names:</strong> Use descriptive names that customers will understand
-                    </li>
-                    <li class="mb-2">
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>SEO Friendly:</strong> URL slugs are automatically generated for search engine optimization
-                    </li>
-                    <li class="mb-2">
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>High-Quality Images:</strong> Use clear, professional images to represent your category
-                    </li>
-                    <li class="mb-0">
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>Organize Products:</strong> Group related products together for better user experience
-                    </li>
-                </ul>
+                <div class="tip-item mb-3">
+                    <div class="d-flex">
+                        <div class="tip-icon me-3">
+                            <i class="bi bi-house text-primary"></i>
+                        </div>
+                        <div>
+                            <strong>Root Categories</strong>
+                            <p class="small text-muted mb-0">Create main categories like "Electronics" or "Clothing"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tip-item mb-3">
+                    <div class="d-flex">
+                        <div class="tip-icon me-3">
+                            <i class="bi bi-diagram-2 text-success"></i>
+                        </div>
+                        <div>
+                            <strong>Subcategories</strong>
+                            <p class="small text-muted mb-0">Organize like "Electronics → Mobile → Android"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tip-item mb-3">
+                    <div class="d-flex">
+                        <div class="tip-icon me-3">
+                            <i class="bi bi-image text-info"></i>
+                        </div>
+                        <div>
+                            <strong>Images</strong>
+                            <p class="small text-muted mb-0">Use clear, professional images for better presentation</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tip-item">
+                    <div class="d-flex">
+                        <div class="tip-icon me-3">
+                            <i class="bi bi-search text-warning"></i>
+                        </div>
+                        <div>
+                            <strong>SEO Friendly</strong>
+                            <p class="small text-muted mb-0">URLs are automatically generated for search engines</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Examples Card -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="bi bi-collection me-2"></i>Category Examples
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="example-hierarchy">
+                    <div class="hierarchy-item root">
+                        <i class="bi bi-laptop me-2"></i>Electronics
+                    </div>
+                    <div class="hierarchy-item level-1">
+                        <i class="bi bi-phone me-2"></i>Mobile Phones
+                    </div>
+                    <div class="hierarchy-item level-2">
+                        <i class="bi bi-android2 me-2"></i>Android
+                    </div>
+                    <div class="hierarchy-item level-2">
+                        <i class="bi bi-apple me-2"></i>iPhone
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const parentSelect = document.getElementById('parent');
+    const parentPreview = document.getElementById('parent-preview');
+    const parentPath = document.getElementById('parent-path');
+    
+    parentSelect.addEventListener('change', function() {
+        if (this.value) {
+            const selectedOption = this.options[this.selectedIndex];
+            parentPath.textContent = selectedOption.text.replace(/└─/g, ' → ');
+            parentPreview.classList.remove('d-none');
+        } else {
+            parentPreview.classList.add('d-none');
+        }
+    });
+    
+    // Initialize preview if parent is pre-selected
+    if (parentSelect.value) {
+        parentSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // Form validation
+    const form = document.getElementById('categoryForm');
+    const nameInput = document.getElementById('name');
+    
+    nameInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        if (value.length > 0) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    });
+});
+</script>
+
+<style>
+.tip-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(13, 110, 253, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.example-hierarchy {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.hierarchy-item {
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+}
+
+.hierarchy-item.root {
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+.hierarchy-item.level-1 {
+    margin-left: 20px;
+    color: #6c757d;
+}
+
+.hierarchy-item.level-2 {
+    margin-left: 40px;
+    color: #adb5bd;
+}
+
+.hierarchy-item.level-1::before {
+    content: "├─ ";
+    color: #dee2e6;
+}
+
+.hierarchy-item.level-2::before {
+    content: "   ├─ ";
+    color: #dee2e6;
+}
+
+.form-control-lg {
+    padding: 12px 16px;
+    font-size: 1.1rem;
+}
+
+.form-select-lg {
+    padding: 12px 16px;
+    font-size: 1.1rem;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 1.1rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+}
+</style>
 {% endblock %}
