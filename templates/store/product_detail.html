@@ -140,7 +140,37 @@
                 <!-- Product Title -->
                 <h1 class="fw-bold mb-3">{{ product.name }}</h1>
                 
-                <!-- Removed duplicate quantity/add-to-cart block as per screenshot. -->
+                <!-- Price Section -->
+                <div class="price-section mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                        {% if product.original_price and product.original_price > product.price %}
+                            <!-- Discounted Price -->
+                            <div class="current-price">
+                                <span class="h3 text-success fw-bold mb-0">${{ product.price }}</span>
+                            </div>
+                            <div class="original-price">
+                                <span class="text-decoration-line-through text-muted h5">${{ product.original_price }}</span>
+                            </div>
+                            <div class="discount-badge">
+                                <span class="badge bg-danger fs-6">SALE</span>
+                            </div>
+                        {% else %}
+                            <!-- Regular Price -->
+                            <div class="current-price">
+                                <span class="h3 text-primary fw-bold mb-0">${{ product.price }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if product.original_price and product.original_price > product.price %}
+                        <div class="mt-2">
+                            <small class="text-success fw-semibold">
+                                <i class="fas fa-tag me-1"></i>
+                                Special offer price!
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+                
                 <!-- Category -->
                 <div class="mb-3">
                     <span class="text-muted">Category: </span>
@@ -187,8 +217,8 @@
                                 <!-- WhatsApp Order Button - Full Width -->
                                 <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'm interested in ordering this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0APlease let me know about availability and delivery details." 
                                    target="_blank" 
-                                   class="btn-whatsapp btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
-                                   style="border-radius: 999px; font-size: 1rem; font-weight: 500;"
+                                   class="btn btn-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
+                                   style="border-radius: 999px; font-size: 1rem; font-weight: 500; background-color: #25D366; border-color: #25D366;"
                                    title="Order via WhatsApp">
                                     <i class="fab fa-whatsapp me-2"></i> Order via WhatsApp
                                 </a>
@@ -204,8 +234,8 @@
                     <!-- WhatsApp Inquiry Button for Out of Stock -->
                     <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'm interested in this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0AThis product is currently out of stock. When will it be available again?" 
                        target="_blank" 
-                       class="btn-whatsapp-outline btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
-                       style="border-radius: 999px; font-size: 1rem; font-weight: 500;"
+                       class="btn btn-outline-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
+                       style="border-radius: 999px; font-size: 1rem; font-weight: 500; border-color: #25D366; color: #25D366;"
                        title="Inquire via WhatsApp">
                         <i class="fab fa-whatsapp me-2"></i> Inquire on WhatsApp
                     </a>

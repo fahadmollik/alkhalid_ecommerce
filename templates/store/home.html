@@ -82,94 +82,26 @@
             </div>
         </div>
         
-        <!-- Enhanced Mobile Categories Section -->
-        <div class="mobile-categories-section d-block d-lg-none">
-            <div class="mobile-categories-container">
-                <div class="mobile-categories-wrapper">
-                    {% for category in categories|slice:":12" %}
-                    <div class="mobile-category-item">
-                        <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                            <div class="mobile-category-card">
-                                {% if category.image and category.image.url %}
-                                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="mobile-category-image">
-                                {% else %}
-                                    <div class="mobile-category-icon">
-                                        {% if 'electronics' in category.name|lower or 'electronic' in category.name|lower %}
-                                            <i class="fas fa-laptop"></i>
-                                        {% elif 'clothing' in category.name|lower or 'fashion' in category.name|lower or 'apparel' in category.name|lower %}
-                                            <i class="fas fa-tshirt"></i>
-                                        {% elif 'book' in category.name|lower %}
-                                            <i class="fas fa-book"></i>
-                                        {% elif 'health' in category.name|lower or 'beauty' in category.name|lower %}
-                                            <i class="fas fa-heart"></i>
-                                        {% elif 'home' in category.name|lower or 'garden' in category.name|lower %}
-                                            <i class="fas fa-home"></i>
-                                        {% elif 'sport' in category.name|lower or 'fitness' in category.name|lower %}
-                                            <i class="fas fa-dumbbell"></i>
-                                        {% elif 'toy' in category.name|lower or 'game' in category.name|lower %}
-                                            <i class="fas fa-gamepad"></i>
-                                        {% elif 'automotive' in category.name|lower or 'car' in category.name|lower %}
-                                            <i class="fas fa-car"></i>
-                                        {% elif 'food' in category.name|lower or 'grocery' in category.name|lower %}
-                                            <i class="fas fa-utensils"></i>
-                                        {% elif 'jewelry' in category.name|lower or 'watch' in category.name|lower %}
-                                            <i class="fas fa-gem"></i>
-                                        {% else %}
-                                            <i class="fas fa-tag"></i>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                                <div class="mobile-category-name">{{ category.name }}</div>
-                            </div>
-                        </a>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <!-- Navigation Buttons -->
-                <button class="mobile-category-nav prev" aria-label="Previous categories">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="mobile-category-nav next" aria-label="Next categories">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-            
-            <!-- Indicators -->
-            <div class="mobile-category-indicators">
-                {% for category in categories|slice:":6" %}
-                <div class="mobile-category-indicator {% if forloop.first %}active{% endif %}"></div>
-                {% endfor %}
-            </div>
-            
-            <!-- Swipe Hint -->
-            <div class="mobile-swipe-hint">
-                <i class="fas fa-hand-point-right"></i>
-                Swipe to explore more categories
-                <i class="fas fa-hand-point-left"></i>
-            </div>
-        </div>
-        
-        <!-- Desktop Categories Carousel -->
-        <div class="desktop-categories-section d-none d-lg-block">
-            <div class="desktop-categories-container">
-                <div class="desktop-categories-carousel">
-                    <div class="desktop-categories-track">
+        <!-- Categories Carousel -->
+        <div class="categories-carousel-section">
+            <div class="categories-carousel-container position-relative">
+                <div class="categories-carousel-wrapper overflow-hidden">
+                    <div class="categories-carousel-track d-flex transition-all" id="categoriesTrack">
                         {% for category in categories %}
-                        <div class="desktop-category-item">
+                        <div class="category-item flex-shrink-0">
                             <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="desktop-category-card" tabindex="0" role="button" aria-label="Browse {{ category.name }} category">
+                                <div class="category-card">
                                     {% if category.image and category.image.url %}
-                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="desktop-category-image">
+                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-image">
                                     {% else %}
-                                        <div class="desktop-category-icon">
+                                        <div class="category-icon">
                                             {% if 'electronics' in category.name|lower or 'electronic' in category.name|lower %}
                                                 <i class="fas fa-laptop"></i>
                                             {% elif 'clothing' in category.name|lower or 'fashion' in category.name|lower or 'apparel' in category.name|lower %}
                                                 <i class="fas fa-tshirt"></i>
                                             {% elif 'book' in category.name|lower %}
                                                 <i class="fas fa-book"></i>
-                                            {% elif 'health' in category.name|lower or 'beauty' in category.name|lower %}
+                                            {% elif 'health' in category.name|lower or 'beauty' in category.name|lower or 'cosmetic' in category.name|lower %}
                                                 <i class="fas fa-heart"></i>
                                             {% elif 'home' in category.name|lower or 'garden' in category.name|lower %}
                                                 <i class="fas fa-home"></i>
@@ -183,14 +115,16 @@
                                                 <i class="fas fa-utensils"></i>
                                             {% elif 'jewelry' in category.name|lower or 'watch' in category.name|lower %}
                                                 <i class="fas fa-gem"></i>
+                                            {% elif 'medic' in category.name|lower %}
+                                                <i class="fas fa-pills"></i>
                                             {% else %}
                                                 <i class="fas fa-tag"></i>
                                             {% endif %}
                                         </div>
                                     {% endif %}
-                                    <div class="desktop-category-name">{{ category.name }}</div>
+                                    <div class="category-name">{{ category.name }}</div>
                                     {% if category.product_count %}
-                                        <div class="desktop-category-count">{{ category.product_count }} items</div>
+                                        <div class="category-count d-none d-md-block">{{ category.product_count }} items</div>
                                     {% endif %}
                                 </div>
                             </a>
@@ -199,250 +133,28 @@
                     </div>
                 </div>
                 
-                <!-- Simple Carousel Controls -->
-                <div class="desktop-carousel-controls">
-                    <button class="desktop-carousel-btn" id="prevCategories" aria-label="Previous categories">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    
-                    <button class="desktop-carousel-btn" id="nextCategories" aria-label="Next categories">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
+                <!-- Navigation Arrows -->
+                <button class="category-nav-btn prev-btn" aria-label="Previous categories" id="categoryPrevBtn" type="button">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="category-nav-btn next-btn" aria-label="Next categories" id="categoryNextBtn" type="button">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
-        </div>
-        
-        <!-- Legacy Bootstrap Carousel (fallback) -->
-    <div id="categoriesCarousel" class="carousel slide d-none" data-bs-ride="carousel" data-bs-interval="4000" data-bs-pause="hover" data-bs-touch="true" data-bs-keyboard="true">
-            <div class="carousel-inner">
-                <!-- First slide (categories 1-4 for mobile, 1-6 for desktop) -->
-                <div class="carousel-item active">
-                    <div class="d-none d-lg-block d-md-block">
-                        <div class="row g-4 flex-grow-1 justify-content-center">
-                            {% for category in categories|slice:"0:6" %}
-                            <div class="col-lg-2 col-md-4"><!-- desktop/tablet: 6 per row -->
-                                <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                    <div class="category-modern-card">
-                                        {% if category.image %}
-                                            {% if category.image and category.image.url %}
-                                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                            {% else %}
-                                                <div class="category-modern-icon">
-                                                    <i class="fas fa-cube fa-2x text-primary"></i>
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="category-modern-icon">
-                                                <i class="fas fa-cube fa-2x text-primary"></i>
-                                            </div>
-                                        {% endif %}
-                                        <div class="category-modern-name">{{ category.name }}</div>
-                                    </div>
-                                </a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="d-block d-lg-none d-md-none">
-                        <div class="row g-2">
-                            {% for category in categories|slice:"0:4" %}
-                            <div class="col-3">
-                                <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                    <div class="category-modern-card">
-                                        {% if category.image %}
-                                            {% if category.image and category.image.url %}
-                                                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                            {% else %}
-                                                <div class="category-modern-icon">
-                                                    <i class="fas fa-cube fa-2x text-primary"></i>
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="category-modern-icon">
-                                                <i class="fas fa-cube fa-2x text-primary"></i>
-                                            </div>
-                                        {% endif %}
-                                        <div class="category-modern-name">{{ category.name }}</div>
-                                    </div>
-                                </a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                {% if categories|length > 4 %}
-                <div class="carousel-item">
-                    <div class="row g-4 flex-grow-1 justify-content-center">
-                        {% for category in categories|slice:"4:8" %}
-                        <div class="col-lg-2 col-md-4 col-3"><!-- 4 per row on mobile -->
-                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="category-modern-card">
-                                    {% if category.image %}
-                                        {% if category.image and category.image.url %}
-                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                        {% else %}
-                                            <div class="category-modern-icon">
-                                                <i class="fas fa-cube fa-2x text-primary"></i>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <div class="category-modern-icon">
-                                            <i class="fas fa-cube fa-2x text-primary"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="category-modern-name">{{ category.name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% if categories|length > 8 %}
-                <div class="carousel-item">
-                    <div class="row g-4 flex-grow-1 justify-content-center">
-                        {% for category in categories|slice:"8:12" %}
-                        <div class="col-lg-2 col-md-4 col-3"><!-- 4 per row on mobile -->
-                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="category-modern-card">
-                                    {% if category.image %}
-                                        {% if category.image and category.image.url %}
-                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                        {% else %}
-                                            <div class="category-modern-icon">
-                                                <i class="fas fa-cube fa-2x text-primary"></i>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <div class="category-modern-icon">
-                                            <i class="fas fa-cube fa-2x text-primary"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="category-modern-name">{{ category.name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% if categories|length > 12 %}
-                <div class="carousel-item">
-                    <div class="row g-4 flex-grow-1 justify-content-center">
-                        {% for category in categories|slice:"12:16" %}
-                        <div class="col-lg-2 col-md-4 col-sm-3 col-3"><!-- 4 per row on mobile -->
-                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="category-modern-card">
-                                    {% if category.image %}
-                                        {% if category.image and category.image.url %}
-                                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                        {% else %}
-                                            <div class="category-modern-icon">
-                                                <i class="fas fa-cube fa-2x text-primary"></i>
-                                            </div>
-                                        {% endif %}
-                                    {% else %}
-                                        <div class="category-modern-icon">
-                                            <i class="fas fa-cube fa-2x text-primary"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="category-modern-name">{{ category.name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Second slide (categories 7-12) if available -->
-                {% if categories|length > 6 %}
-                <div class="carousel-item">
-                    <div class="row g-4">
-                        {% for category in categories|slice:"6:12" %}
-                        <div class="col-lg-2 col-md-4 col-sm-6">
-                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="category-modern-card">
-                                    {% if category.image %}
-                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                    {% else %}
-                                        <div class="category-modern-icon">
-                                            <i class="fas fa-cube fa-2x text-primary"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="category-modern-name">{{ category.name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Third slide (categories 13-18) if available -->
-                {% if categories|length > 12 %}
-                <div class="carousel-item">
-                    <div class="row g-4">
-                        {% for category in categories|slice:"12:18" %}
-                        <div class="col-lg-2 col-md-4 col-sm-6">
-                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="category-modern-card">
-                                    {% if category.image %}
-                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                    {% else %}
-                                        <div class="category-modern-icon">
-                                            <i class="fas fa-cube fa-2x text-primary"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="category-modern-name">{{ category.name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <!-- Fourth slide (categories 19-24) if available -->
-                {% if categories|length > 18 %}
-                <div class="carousel-item">
-                    <div class="row g-4">
-                        {% for category in categories|slice:"18:24" %}
-                        <div class="col-lg-2 col-md-4 col-sm-6">
-                            <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
-                                <div class="category-modern-card">
-                                    {% if category.image %}
-                                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-modern-image">
-                                    {% else %}
-                                        <div class="category-modern-icon">
-                                            <i class="fas fa-cube fa-2x text-primary"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="category-modern-name">{{ category.name }}</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
+            
+            <!-- Indicators (only show on mobile) -->
+            <div class="category-indicators d-flex d-md-none justify-content-center mt-3" id="categoryIndicators">
+                <!-- Will be populated by JavaScript -->
             </div>
-            <!-- Carousel Controls - Only show if more than 6 categories -->
-            {% if categories|length > 6 %}
-            <div class="d-flex justify-content-center mt-2">
-                <div class="carousel-indicators">
-                    <div class="carousel-indicators mb-1 mb-md-0">
-                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    {% if categories|length > 12 %}
-                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-                    {% endif %}
-                    {% if categories|length > 18 %}
-                    <button type="button" data-bs-target="#categoriesCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
-                    {% endif %}
-                </div>
+            
+            <!-- Swipe Hint (mobile only) -->
+            <div class="category-swipe-hint d-block d-md-none text-center mt-2">
+                <small class="text-muted">
+                    <i class="fas fa-hand-point-right"></i>
+                    Swipe to explore more categories
+                    <i class="fas fa-hand-point-left"></i>
+                </small>
             </div>
-            {% endif %}
         </div>
     </div>
 </section>
@@ -902,81 +614,143 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Initialize categories carousel
-    const categoriesCarousel = document.getElementById('categoriesCarousel');
-    if (categoriesCarousel) {
-        console.log('Initializing categories carousel...');
+    // Unified Responsive Categories Carousel
+    const carousel = document.getElementById('categoriesTrack');
+    const prevBtn = document.getElementById('categoryPrevBtn');
+    const nextBtn = document.getElementById('categoryNextBtn');
+    const indicators = document.getElementById('categoryIndicators');
+    const items = document.querySelectorAll('.category-item');
+    
+    if (carousel && prevBtn && nextBtn && items.length > 0) {
+        let currentIndex = 0;
+        let itemsPerView = getItemsPerView();
+        let totalPages = Math.ceil(items.length / itemsPerView);
         
-        // Force re-initialize Bootstrap carousel with auto-slide
-        const carousel = new bootstrap.Carousel(categoriesCarousel, {
-            interval: 5000, // Auto-slide every 5 seconds
-            wrap: true,     // Loop back to first slide after last
-            touch: true,    // Enable touch/swipe gestures
-            pause: 'hover'  // Pause on hover, resume when mouse leaves
+        function getItemsPerView() {
+            const width = window.innerWidth;
+            if (width >= 768) return 6;   // Desktop: 6 categories per slide
+            if (width >= 576) return 3;   // Tablet: 3 categories per slide
+            return 2;                     // Mobile: 2 categories per slide
+        }
+        
+        function updateCarousel() {
+            // Calculate how many categories to skip per slide
+            const itemsToSkip = currentIndex * itemsPerView;
+            const containerWidth = carousel.parentElement.offsetWidth;
+            const itemWidth = containerWidth / itemsPerView;
+            const offset = itemsToSkip * (itemWidth + 15); // 15px gap
+            
+            carousel.style.transform = `translateX(-${offset}px)`;
+            
+            // Update indicators on mobile
+            if (window.innerWidth < 768) {
+                updateIndicators();
+            }
+            
+            // Update button states
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex >= totalPages - 1;
+            
+            prevBtn.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            nextBtn.style.opacity = currentIndex >= totalPages - 1 ? '0.5' : '1';
+            
+            // Hide navigation arrows if all items fit in one view
+            if (totalPages <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            }
+        }
+        
+        function updateIndicators() {
+            if (window.innerWidth >= 768) return; // Only show indicators on mobile
+            
+            indicators.innerHTML = '';
+            for (let i = 0; i < totalPages; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = `category-indicator ${i === currentIndex ? 'active' : ''}`;
+                indicator.addEventListener('click', () => goToPage(i));
+                indicators.appendChild(indicator);
+            }
+        }
+        
+        function goToPage(pageIndex) {
+            currentIndex = Math.max(0, Math.min(pageIndex, totalPages - 1));
+            updateCarousel();
+        }
+        
+        function goToPrev() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCarousel();
+            }
+        }
+        
+        function goToNext() {
+            if (currentIndex < totalPages - 1) {
+                currentIndex++;
+                updateCarousel();
+            }
+        }
+        
+        // Event listeners
+        prevBtn.addEventListener('click', goToPrev);
+        nextBtn.addEventListener('click', goToNext);
+        
+        // Touch/swipe support for mobile
+        let startX = 0;
+        let endX = 0;
+        
+        carousel.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
         });
         
-        // Add manual navigation handlers
-        let prevBtn = null, nextBtn = null;
-        if (categoriesCarousel) {
-            prevBtn = categoriesCarousel.querySelector('.carousel-control-prev');
-            nextBtn = categoriesCarousel.querySelector('.carousel-control-next');
-        }
-        if (prevBtn && prevBtn.addEventListener) {
-            prevBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                carousel.prev();
-            });
-        }
-        if (nextBtn && nextBtn.addEventListener) {
-            nextBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                carousel.next();
-            });
-        }
-        
-        // Debug: Log carousel state
-        if (categoriesCarousel && categoriesCarousel.addEventListener) {
-            categoriesCarousel.addEventListener('slide.bs.carousel', function(e) {
-                console.log('Carousel sliding to:', e.to);
-            });
-            categoriesCarousel.addEventListener('slid.bs.carousel', function(e) {
-                console.log('Carousel slid to:', e.to);
-            });
-        }
-        
-        // Add auto-slide status indicator (optional)
-        let isPlaying = true;
-        
-        // Pause on mouse enter, resume on mouse leave
-        if (categoriesCarousel && categoriesCarousel.addEventListener) {
-            categoriesCarousel.addEventListener('mouseenter', function() {
-                if (isPlaying) {
-                    carousel.pause();
-                    console.log('Carousel paused on hover');
-                }
-            });
-            categoriesCarousel.addEventListener('mouseleave', function() {
-                if (isPlaying) {
-                    carousel.cycle();
-                    console.log('Carousel resumed');
-                }
-            });
-        }
-        
-        // Optional: Add keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (categoriesCarousel && categoriesCarousel.classList && document.activeElement.closest && document.activeElement.closest('#categoriesCarousel')) {
-                if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    carousel.prev();
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    carousel.next();
+        carousel.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            const threshold = 50;
+            
+            if (Math.abs(diff) > threshold) {
+                if (diff > 0) {
+                    goToNext(); // Swipe left - next page
+                } else {
+                    goToPrev(); // Swipe right - previous page
                 }
             }
         });
+        
+        // Handle window resize
+        function handleResize() {
+            const newItemsPerView = getItemsPerView();
+            if (newItemsPerView !== itemsPerView) {
+                itemsPerView = newItemsPerView;
+                totalPages = Math.ceil(items.length / itemsPerView);
+                currentIndex = Math.min(currentIndex, totalPages - 1);
+                updateCarousel();
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Initialize
+        updateCarousel();
+        
+        console.log(`Categories carousel initialized: ${items.length} items, ${itemsPerView} per view, ${totalPages} pages`);
+        console.log('Items per view by screen size:', {
+            mobile: '2 items (< 576px)',
+            tablet: '3 items (576px - 767px)', 
+            desktop: '6 items (>= 768px)',
+            current: `${itemsPerView} items (${window.innerWidth}px)`
+        });
     } else {
-        console.log('Categories carousel not found');
+        console.log('Categories carousel elements not found:', {
+            carousel: !!carousel,
+            prevBtn: !!prevBtn,
+            nextBtn: !!nextBtn,
+            itemsCount: items.length
+        });
     }
 });
 </script>

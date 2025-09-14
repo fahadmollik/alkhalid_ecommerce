@@ -9,7 +9,7 @@ import json
 def home(request):
     """Home page with hero banners, categories, and featured products"""
     hero_banners = HeroBanner.objects.filter(is_active=True)
-    categories = Category.objects.all()  # Get all categories for carousel
+    categories = Category.objects.filter(parent=None)  # Get only root categories for carousel
     best_sellers = Product.objects.filter(is_best_seller=True, stock_quantity__gt=0)[:8]
     featured_products = Product.objects.filter(is_featured=True, stock_quantity__gt=0)[:4]  # Bring back featured products
     all_products = Product.objects.filter(stock_quantity__gt=0)[:12]  # Keep all products section
