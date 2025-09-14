@@ -743,21 +743,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize
         updateCarousel();
-        
-        console.log(`Categories carousel initialized: ${items.length} items, ${itemsPerView} per view, ${totalPages} pages`);
-        console.log('Items per view by screen size:', {
-            mobile: '2 items (< 576px)',
-            tablet: '3 items (576px - 767px)', 
-            desktop: '6 items (>= 768px)',
-            current: `${itemsPerView} items (${window.innerWidth}px)`
-        });
-    } else {
-        console.log('Categories carousel elements not found:', {
-            carousel: !!carousel,
-            prevBtn: !!prevBtn,
-            nextBtn: !!nextBtn,
-            itemsCount: items.length
-        });
     }
 });
 </script>

@@ -54,22 +54,6 @@
         </div>
     {% endif %}
     
-    <!-- Debug: Show all form errors -->
-    {% if form.errors %}
-        <div class="alert alert-warning">
-            <strong>Debug - Form Errors:</strong>
-            <ul>
-                {% for field, errors in form.errors.items %}
-                    <li><strong>{{ field }}:</strong> 
-                        {% for error in errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-    
     <!-- Error message area for validation -->
     <div id="checkout-error" class="alert alert-danger d-none" style="font-size:1rem;"></div>
     <form method="post" class="needs-loading">
@@ -640,9 +624,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorDiv.style.display = 'none';
             } else {
                 // Invalid phone number
-                this.setCustomValidity('দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01712345678)');
+                this.setCustomValidity('দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01785807426)');
                 this.classList.add('is-invalid');
-                errorDiv.textContent = 'দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01712345678)';
+                errorDiv.textContent = 'দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01785807426)';
                 errorDiv.style.display = 'block';
             }
         });
@@ -662,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (value !== '' && !phoneRegex.test(value)) {
                 this.classList.add('is-invalid');
-                errorDiv.textContent = 'দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01712345678)';
+                errorDiv.textContent = 'দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01785807426)';
                 errorDiv.style.display = 'block';
             }
         });
@@ -733,8 +717,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const newTotal = subtotal + fee;
             orderTotalElement.textContent = `৳${newTotal.toFixed(2)}`;
         }
-        
-        console.log(`Updated delivery fee: ৳${fee}, Subtotal: ৳${subtotal}, New Total: ৳${(subtotal + fee).toFixed(2)}`);
     }
     
     // Form submission

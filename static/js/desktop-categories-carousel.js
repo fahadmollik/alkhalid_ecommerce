@@ -14,8 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const visibleCards = Math.floor(carousel.offsetWidth / (cardWidth + gap));
     const maxIndex = Math.max(0, cards.length - visibleCards);
     
-    console.log('Desktop carousel initialized:', { cards: cards.length, visibleCards, maxIndex });
-    
     // Update carousel position
     function updateCarousel() {
         const translateX = -(currentIndex * (cardWidth + gap));

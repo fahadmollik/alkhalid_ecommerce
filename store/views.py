@@ -164,13 +164,6 @@ def add_to_cart(request, product_id):
         
         quantity = int(request.POST.get('quantity', 1))
         
-        # Debug: Print what we're receiving
-        print(f"=== ADD TO CART DEBUG ===")
-        print(f"Product: {product.name}")
-        print(f"Requested quantity: {quantity}")
-        print(f"POST data: {dict(request.POST)}")
-        print(f"Session key: {request.session.session_key}")
-        
         if quantity > product.stock_quantity:
             messages.error(request, 'Not enough stock available.')
             return redirect('product_detail', product_id=product_id)
@@ -182,24 +175,12 @@ def add_to_cart(request, product_id):
         )
         
         if not created:
-            print(f"Existing cart item found - current quantity: {cart_item.quantity}")
             new_quantity = cart_item.quantity + quantity
-            print(f"New quantity will be: {new_quantity}")
             if new_quantity > product.stock_quantity:
                 messages.error(request, 'Not enough stock available.')
                 return redirect('product_detail', product_id=product_id)
             cart_item.quantity = new_quantity
             cart_item.save()
-            print(f"Updated cart item quantity to: {cart_item.quantity}")
-        else:
-            print(f"Created new cart item with quantity: {cart_item.quantity}")
-        
-        # Debug: Check all cart items for this session
-        all_cart_items = CartItem.objects.filter(session_key=request.session.session_key)
-        print(f"All cart items for session:")
-        for item in all_cart_items:
-            print(f"  - {item.product.name}: quantity {item.quantity}")
-        print("=== END DEBUG ===")
         
         messages.success(request, f'{product.name} added to cart!')
         
@@ -233,7 +214,6 @@ def update_cart(request, item_id):
         
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
-            import json
             try:
                 data = json.loads(request.body)
                 quantity = int(data.get('quantity', 1))

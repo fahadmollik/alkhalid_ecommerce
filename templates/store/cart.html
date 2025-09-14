@@ -454,9 +454,6 @@ class DynamicCart {
         
         cartItem.style.opacity = '0.7';
         
-        console.log('Updating item:', itemId, 'to quantity:', quantity);
-        console.log('Update URL:', updateUrl);
-        
         // Make AJAX request to update quantity
         fetch(updateUrl, {
             method: 'POST',
@@ -518,10 +515,6 @@ class DynamicCart {
         
         cartItem.style.opacity = '0.5';
         
-        console.log('Removing item:', itemId);
-        console.log('Remove URL:', removeUrl);
-        console.log('CSRF Token:', this.getCSRFToken());
-        
         // Make AJAX request to remove item
         fetch(removeUrl, {
             method: 'POST',
@@ -532,14 +525,12 @@ class DynamicCart {
             }
         })
         .then(response => {
-            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Remove response:', data);
             if (data.success) {
                 // Remove item from DOM
                 cartItem.remove();
@@ -669,12 +660,10 @@ document.addEventListener('DOMContentLoaded', function() {
 // Legacy functions for compatibility (if needed elsewhere)
 function incrementQuantity(button) {
     // This is now handled by the DynamicCart class
-    console.log('Using legacy increment function - consider updating to new dynamic cart');
 }
 
 function decrementQuantity(button) {
     // This is now handled by the DynamicCart class
-    console.log('Using legacy decrement function - consider updating to new dynamic cart');
 }
 </script>
 {% endblock %}

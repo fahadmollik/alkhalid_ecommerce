@@ -43,7 +43,7 @@
                             <strong>Order ID:</strong>
                         </div>
                         <div class="col-sm-9">
-                            <span class="badge bg-primary fs-6">{{ order.order_id }}</span>
+                            <span class="fw-bold text-primary fs-6">{{ order.order_id }}</span>
                         </div>
                     </div>
                     
@@ -52,7 +52,7 @@
                             <strong>Tracking Number:</strong>
                         </div>
                         <div class="col-sm-9">
-                            <span class="badge bg-info fs-6">{{ order.tracking_number }}</span>
+                            <span class="fw-bold text-info fs-6">{{ order.tracking_number }}</span>
                             <small class="text-muted d-block mt-1">Use this number to track your order</small>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
                             <strong>Status:</strong>
                         </div>
                         <div class="col-sm-9">
-                            <span class="badge bg-warning">{{ order.get_status_display }}</span>
+                            <span class="fw-bold text-success">{{ order.get_status_display }}</span>
                         </div>
                     </div>
                     
@@ -80,7 +80,7 @@
                             <strong>Payment Method:</strong>
                         </div>
                         <div class="col-sm-9">
-                            <span class="badge bg-success">Cash on Delivery</span>
+                            <span class="fw-bold text-success">Cash on Delivery</span>
                         </div>
                     </div>
                     
