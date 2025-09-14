@@ -394,7 +394,7 @@ class SiteSettings(models.Model):
     header_text_color = models.CharField(max_length=7, default='#ffffff', help_text='Header text color (hex)')
     
     # Contact information
-    phone_number = models.CharField(max_length=20, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True, help_text='Phone/WhatsApp number for orders and contact (include country code)')
     email = models.EmailField(blank=True)
     address = models.TextField(blank=True)
     

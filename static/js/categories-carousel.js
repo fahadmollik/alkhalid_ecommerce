@@ -20,8 +20,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Determine items per slide based on screen width
         let itemsPerSlide;
-        if (containerWidth < 768) {
-            itemsPerSlide = 4; // Mobile: 4 items per slide
+        if (containerWidth < 576) {
+            itemsPerSlide = 2; // Small mobile: 2 items per slide
+        } else if (containerWidth < 768) {
+            itemsPerSlide = 3; // Large mobile/small tablet: 3 items per slide
         } else {
             itemsPerSlide = 6; // Desktop: 6 items per slide
         }
@@ -40,8 +42,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update carousel position
     function updateCarousel() {
+        // Ensure currentSlide doesn't exceed bounds
+        currentSlide = Math.max(0, Math.min(currentSlide, settings.maxSlide));
+        
         const slideOffset = currentSlide * settings.itemsPerSlide;
-        const translateX = -(slideOffset * settings.itemWidth);
+        
+        // Calculate translateX with proper bounds checking
+        let translateX = -(slideOffset * settings.itemWidth);
+        
+        // Ensure we don't scroll past the last item
+        const maxTranslateX = -((items.length - settings.itemsPerSlide) * settings.itemWidth);
+        if (translateX < maxTranslateX) {
+            translateX = maxTranslateX;
+        }
+        
         track.style.transform = `translateX(${translateX}px)`;
         
         // Update button states
@@ -59,25 +73,29 @@ document.addEventListener('DOMContentLoaded', function() {
         updateIndicators();
     }
     
-    // Update indicators
+    // Update active indicator
     function updateIndicators() {
         if (!indicators) return;
         
-        indicators.innerHTML = '';
+        const indicatorDots = indicators.querySelectorAll('.indicator-dot');
+        if (!indicatorDots.length) return;
         
-        for (let i = 0; i < settings.totalSlides; i++) {
-            const indicator = document.createElement('button');
-            indicator.className = `indicator ${i === currentSlide ? 'active' : ''}`;
-            indicator.setAttribute('aria-label', `Go to slide ${i + 1}`);
-            indicator.addEventListener('click', () => {
-                currentSlide = i;
-                updateCarousel();
-            });
-            indicators.appendChild(indicator);
-        }
-    }
-    
-    // Navigation event listeners
+        // Calculate which categories are currently visible
+        const slideOffset = currentSlide * settings.itemsPerSlide;
+        const startIndex = slideOffset;
+        const endIndex = Math.min(startIndex + settings.itemsPerSlide, items.length);
+        
+        indicatorDots.forEach((indicator, index) => {
+            // Check if this category is currently visible
+            const isVisible = index >= startIndex && index < endIndex;
+            
+            if (isVisible) {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+        });
+    }    // Navigation event listeners
     if (prevBtn) {
         prevBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -102,29 +120,65 @@ document.addEventListener('DOMContentLoaded', function() {
     let startX = 0;
     let currentX = 0;
     let isDragging = false;
+    let startTime = 0;
+    let startTranslateX = 0;
     
     track.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
+        startTime = Date.now();
         isDragging = true;
+        
+        // Get current translateX value
+        const transform = window.getComputedStyle(track).transform;
+        if (transform !== 'none') {
+            const matrix = new DOMMatrix(transform);
+            startTranslateX = matrix.e;
+        } else {
+            startTranslateX = 0;
+        }
+        
+        track.style.transition = 'none'; // Disable transition during drag
     }, { passive: true });
     
     track.addEventListener('touchmove', function(e) {
         if (!isDragging) return;
-        currentX = e.touches[0].clientX;
-        const diff = startX - currentX;
         
-        // Add visual feedback during swipe
-        const slideOffset = currentSlide * settings.itemsPerSlide;
-        const translateX = -(slideOffset * settings.itemWidth) - diff;
+        e.preventDefault();
+        const currentX = e.touches[0].clientX;
+        const deltaX = currentX - startX;
+        
+        // Calculate the maximum allowed translation
+        const maxTranslateX = -((items.length - settings.itemsPerSlide) * settings.itemWidth);
+        
+        // Apply resistance when trying to go beyond boundaries
+        let translateX = startTranslateX + deltaX;
+        
+        // Resist going beyond the left boundary (first item)
+        if (translateX > 0) {
+            translateX = deltaX * 0.3; // Apply resistance
+        }
+        // Resist going beyond the right boundary (last visible items)
+        else if (translateX < maxTranslateX) {
+            const overflow = maxTranslateX - translateX;
+            translateX = maxTranslateX + overflow * 0.3; // Apply resistance
+        }
+        
         track.style.transform = `translateX(${translateX}px)`;
-    }, { passive: true });
+    }, { passive: false });
     
     track.addEventListener('touchend', function(e) {
         if (!isDragging) return;
         isDragging = false;
         
+        track.style.transition = 'transform 0.3s ease'; // Re-enable transition
+        
+        const currentX = e.changedTouches[0].clientX;
         const diff = startX - currentX;
-        const threshold = 50; // Minimum swipe distance
+        const duration = Date.now() - startTime;
+        const velocity = Math.abs(diff) / duration;
+        
+        // Lower threshold for fast swipes, higher for slow swipes
+        const threshold = velocity > 0.5 ? 30 : 80;
         
         if (Math.abs(diff) > threshold) {
             if (diff > 0 && currentSlide < settings.maxSlide) {
@@ -188,6 +242,9 @@ document.addEventListener('DOMContentLoaded', function() {
         items: items.length,
         itemsPerSlide: settings.itemsPerSlide,
         totalSlides: settings.totalSlides,
-        maxSlide: settings.maxSlide
+        maxSlide: settings.maxSlide,
+        containerWidth: track.parentElement.offsetWidth,
+        isMobile: track.parentElement.offsetWidth < 768,
+        paginationType: 'category-based'
     });
 });

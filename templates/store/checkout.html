@@ -35,6 +35,43 @@
         </div>
     </div>
     
+    <!-- Django Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Form-level errors -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Debug: Show all form errors -->
+    {% if form.errors %}
+        <div class="alert alert-warning">
+            <strong>Debug - Form Errors:</strong>
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    <li><strong>{{ field }}:</strong> 
+                        {% for error in errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    
+    <!-- Error message area for validation -->
+    <div id="checkout-error" class="alert alert-danger d-none" style="font-size:1rem;"></div>
     <form method="post" class="needs-loading">
         {% csrf_token %}
         <div class="row">
@@ -49,35 +86,65 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="customer_name" class="form-label">Full Name *</label>
-                                <input type="text" class="form-control" id="customer_name" 
-                                       name="customer_name" required placeholder="আপনার নাম">
+                                <label for="{{ form.customer_name.id_for_label }}" class="form-label">Full Name *</label>
+                                {{ form.customer_name }}
+                                {% if form.customer_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.customer_name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="customer_phone" class="form-label">Phone Number *</label>
-                                <input type="tel" class="form-control" id="customer_phone" 
-                                       name="customer_phone" required placeholder="আপনার মোবাইল নাম্বার">
+                                <label for="{{ form.customer_phone.id_for_label }}" class="form-label">Phone Number *</label>
+                                {{ form.customer_phone }}
+                                {% if form.customer_phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.customer_phone.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="customer_email" class="form-label">Email Address (Optional)</label>
-                            <input type="email" class="form-control" id="customer_email" 
-                                   name="customer_email" placeholder="আপনার ইমেইল ঠিকানা">
+                            <label for="{{ form.customer_email.id_for_label }}" class="form-label">Email Address (Optional)</label>
+                            {{ form.customer_email }}
+                            {% if form.customer_email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.customer_email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-3">
-                            <label for="shipping_address" class="form-label">Complete Address *</label>
-                            <textarea class="form-control" id="shipping_address" name="shipping_address" 
-                                      rows="4" required placeholder="আপনার বাসার সম্পূর্ণ ঠিকানা"></textarea>
+                            <label for="{{ form.shipping_address.id_for_label }}" class="form-label">Complete Address *</label>
+                            {{ form.shipping_address }}
+                            {% if form.shipping_address.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.shipping_address.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-3">
-                            <label for="notes" class="form-label">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
                                 Additional Notes (Optional)
                             </label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3" 
-                                      placeholder="ডেলিভারির জন্য কোন বিশেষ নির্দেশাবলী"></textarea>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.notes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-3">
@@ -90,7 +157,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="delivery_option" 
                                                id="delivery_{{ option.id }}" value="{{ option.id }}" 
-                                               {% if forloop.first %}checked{% endif %} required
+                                               {% if forloop.first or form.delivery_option.value == option.id %}checked{% endif %}
                                                data-price="{{ option.price }}">
                                         <label class="form-check-label" for="delivery_{{ option.id }}">
                                             {{ option.name }} (৳{{ option.price }})
@@ -98,6 +165,13 @@
                                     </div>
                                     {% endfor %}
                                 </div>
+                                {% if form.delivery_option.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.delivery_option.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -275,6 +349,54 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Form validation error styles */
+.invalid-feedback {
+    display: block !important;
+    width: 100%;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 0.4rem 0.6rem;
+    background-color: rgba(220, 53, 69, 0.08);
+    border-left: 3px solid #dc3545;
+    border-radius: 0.25rem;
+}
+
+.form-control.is-invalid,
+.form-control:invalid {
+    border-color: #dc3545;
+    border-width: 2px;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Ensure errors are visible */
+.form-group .invalid-feedback,
+.mb-3 .invalid-feedback {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Style for form validation on focus */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control:focus.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Force visibility of error messages */
+.invalid-feedback.d-block {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .progress-steps {
@@ -347,6 +469,45 @@
         padding: 0.75rem 1rem;
         font-size: 1rem;
     }
+    
+    /* Form validation error styles for mobile */
+    .invalid-feedback {
+        display: block !important;
+        width: 100%;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #dc3545;
+        font-weight: 500;
+        padding: 0.5rem;
+        background-color: rgba(220, 53, 69, 0.1);
+        border-left: 3px solid #dc3545;
+        border-radius: 0.25rem;
+    }
+    
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        border-width: 2px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4m0 4.8v-.4a2 2 0 0 0-.8-.8l-.2-.2a1 1 0 0 1-.2-.8v-.2'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    
+    /* Ensure error messages are always visible on mobile */
+    .col-md-6 .invalid-feedback,
+    .col-md-12 .invalid-feedback,
+    .mb-3 .invalid-feedback {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 1.5rem;
+    }
+    
+    .mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
 }
 
 @media (max-width: 576px) {
@@ -399,17 +560,43 @@
 // Form validation and delivery option handling
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
-    const phoneInput = document.getElementById('customer_phone');
+    const phoneInput = document.getElementById('id_customer_phone');
     const deliveryOptions = document.querySelectorAll('input[name="delivery_option"]');
     const subtotal = parseFloat('{{ subtotal }}');
+    
+    // Add client-side validation class to form controls with errors
+    function addValidationClasses() {
+        const errorFields = document.querySelectorAll('.invalid-feedback');
+        errorFields.forEach(function(errorDiv) {
+            const formGroup = errorDiv.closest('.mb-3');
+            if (formGroup) {
+                const formControl = formGroup.querySelector('.form-control');
+                if (formControl) {
+                    formControl.classList.add('is-invalid');
+                }
+            }
+        });
+        
+        // Also check for any Django form errors and apply classes
+        const formControls = document.querySelectorAll('.form-control');
+        formControls.forEach(function(control) {
+            const parentGroup = control.closest('.mb-3');
+            if (parentGroup && parentGroup.querySelector('.invalid-feedback')) {
+                control.classList.add('is-invalid');
+            }
+        });
+    }
+    
+    // Initialize validation classes
+    addValidationClasses();
     
     // Update total when delivery option changes
     function updateOrderTotal() {
         const selectedOption = document.querySelector('input[name="delivery_option"]:checked');
-        const deliveryFee = selectedOption ? parseFloat(selectedOption.closest('.delivery-option').dataset.price) : 0;
+        const deliveryFee = selectedOption ? parseFloat(selectedOption.dataset.price) : 0;
         const total = subtotal + deliveryFee;
         
-        document.getElementById('delivery-fee').textContent = `$${deliveryFee.toFixed(2)}`;
+        document.getElementById('delivery-fee').textContent = `৳${deliveryFee.toFixed(2)}`;
         document.getElementById('order-total').textContent = `৳${total.toFixed(2)}`;
         
         // Add animation
@@ -426,14 +613,85 @@ document.addEventListener('DOMContentLoaded', function() {
         option.addEventListener('change', updateOrderTotal);
     });
     
-    // Phone number formatting
-    phoneInput.addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
-        if (value.length === 11 && value.startsWith('01')) {
-            this.setCustomValidity('');
-        } else {
-            this.setCustomValidity('Enter a valid phone number');
-        }
+    // Phone number validation
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            let value = this.value.trim();
+            const phoneRegex = /^(\+8801|01)[3-9]\d{8}$/;
+            const parentGroup = this.closest('.mb-3');
+            let errorDiv = parentGroup.querySelector('.invalid-feedback');
+            
+            // Create error div if it doesn't exist
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback d-block';
+                this.parentNode.appendChild(errorDiv);
+            }
+            
+            if (value === '') {
+                // Empty field - remove validation styling
+                this.classList.remove('is-invalid');
+                errorDiv.style.display = 'none';
+                this.setCustomValidity('');
+            } else if (phoneRegex.test(value)) {
+                // Valid phone number
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+                errorDiv.style.display = 'none';
+            } else {
+                // Invalid phone number
+                this.setCustomValidity('দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01712345678)');
+                this.classList.add('is-invalid');
+                errorDiv.textContent = 'দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01712345678)';
+                errorDiv.style.display = 'block';
+            }
+        });
+        
+        // Also validate on blur for better UX
+        phoneInput.addEventListener('blur', function() {
+            let value = this.value.trim();
+            const phoneRegex = /^(\+8801|01)[3-9]\d{8}$/;
+            const parentGroup = this.closest('.mb-3');
+            let errorDiv = parentGroup.querySelector('.invalid-feedback');
+            
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback d-block';
+                this.parentNode.appendChild(errorDiv);
+            }
+            
+            if (value !== '' && !phoneRegex.test(value)) {
+                this.classList.add('is-invalid');
+                errorDiv.textContent = 'দয়া করে একটি সঠিক বাংলাদেশী ফোন নম্বর দিন (যেমন: 01712345678)';
+                errorDiv.style.display = 'block';
+            }
+        });
+    }
+    
+    // Real-time validation for all form fields
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(function(control) {
+        control.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+                const errorDiv = this.parentNode.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                }
+            }
+        });
+        
+        control.addEventListener('input', function() {
+            if (this.value.trim() && this.classList.contains('is-invalid')) {
+                this.classList.remove('is-invalid');
+                const errorDiv = this.parentNode.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                }
+            }
+        });
     });
     
     // Handle delivery option selection
@@ -481,27 +739,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form submission
     form.addEventListener('submit', function(e) {
-        const name = document.getElementById('customer_name').value.trim();
-        const phone = document.getElementById('customer_phone').value.trim();
-        const address = document.getElementById('shipping_address').value.trim();
-        const selectedDelivery = document.querySelector('input[name="delivery_option"]:checked');
+        const errorDiv = document.getElementById('checkout-error');
+        let hasErrors = false;
         
-        if (!name || !phone || !address) {
-            e.preventDefault();
-            showAlert('Please fill in all required fields.', 'danger');
-            return;
+        // Check for any visible validation errors
+        const visibleErrors = document.querySelectorAll('.invalid-feedback:not([style*="display: none"])');
+        if (visibleErrors.length > 0) {
+            hasErrors = true;
         }
         
-        if (!selectedDelivery) {
-            e.preventDefault();
-            showAlert('Please select a delivery option.', 'danger');
-            return;
-        }
+        // Check required fields
+        const requiredFields = document.querySelectorAll('[required]');
+        requiredFields.forEach(function(field) {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                hasErrors = true;
+            }
+        });
         
-        if (phone.length < 10) {
+        if (hasErrors) {
             e.preventDefault();
-            showAlert('Please enter a valid phone number.', 'danger');
+            errorDiv.textContent = 'Please fix the errors below and try again.';
+            errorDiv.classList.remove('d-none');
+            errorDiv.scrollIntoView({behavior: 'smooth', block: 'center'});
+            setTimeout(() => errorDiv.classList.add('d-none'), 5000);
             return;
+        } else {
+            errorDiv.classList.add('d-none');
         }
         
         // Show confirmation

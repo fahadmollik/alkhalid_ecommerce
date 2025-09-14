@@ -122,7 +122,14 @@
                                             {% endif %}
                                         </div>
                                     {% endif %}
-                                    <div class="category-name">{{ category.name }}</div>
+                                    <div class="category-name">
+                                        {% if category.parent %}
+                                            <small class="text-muted d-block">{{ category.parent.name }}</small>
+                                            <strong>{{ category.name }}</strong>
+                                        {% else %}
+                                            {{ category.name }}
+                                        {% endif %}
+                                    </div>
                                     {% if category.product_count %}
                                         <div class="category-count d-none d-md-block">{{ category.product_count }} items</div>
                                     {% endif %}

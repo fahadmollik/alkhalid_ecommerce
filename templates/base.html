@@ -112,10 +112,10 @@
     <div id="contactButtons" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 15px;">
         <!-- Call Button -->
         <div id="callButton" style="position: relative;">
-            <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'd like to get in touch with you." 
+            <a href="https://wa.me/{{ site_settings.phone_number|default:'15551234567' }}?text=Hi! I'd like to get in touch with you." 
                target="_blank"
                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: #25D366; color: white; border-radius: 50%; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 24px; transition: all 0.3s ease;"
-               title="Contact us on WhatsApp: {{ site_settings.whatsapp_number|default:'+1 (555) 123-4567' }}"
+               title="Contact us on WhatsApp: {{ site_settings.phone_number|default:'+1 (555) 123-4567' }}"
                onmouseover="this.style.transform='scale(1.1)'"
                onmouseout="this.style.transform='scale(1)'">
                 <i class="fab fa-whatsapp"></i>

@@ -4,12 +4,13 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Product, Category, HeroBanner, CartItem, Order, OrderItem, DeliveryOption, OrderStatusHistory, ProductImage
+from .forms import CheckoutForm
 import json
 
 def home(request):
     """Home page with hero banners, categories, and featured products"""
     hero_banners = HeroBanner.objects.filter(is_active=True)
-    categories = Category.objects.filter(parent=None)  # Get only root categories for carousel
+    categories = Category.objects.all()  # Get all categories (including children) for carousel
     best_sellers = Product.objects.filter(is_best_seller=True, stock_quantity__gt=0)[:8]
     featured_products = Product.objects.filter(is_featured=True, stock_quantity__gt=0)[:4]  # Bring back featured products
     all_products = Product.objects.filter(stock_quantity__gt=0)[:12]  # Keep all products section
@@ -318,62 +319,57 @@ def checkout(request):
     subtotal = sum(item.total_price for item in cart_items)
     
     if request.method == 'POST':
-        # Get delivery option
-        delivery_option_id = request.POST.get('delivery_option')
-        delivery_option = None
-        delivery_fee = 0
-        
-        if delivery_option_id:
-            try:
-                delivery_option = DeliveryOption.objects.get(id=delivery_option_id, is_active=True)
-                delivery_fee = delivery_option.price
-            except DeliveryOption.DoesNotExist:
-                messages.error(request, 'Invalid delivery option selected!')
-                return redirect('checkout')
-        
-        total_amount = subtotal + delivery_fee
-        
-        # Create order
-        order = Order.objects.create(
-            customer_name=request.POST.get('customer_name'),
-            customer_email=request.POST.get('customer_email', ''),
-            customer_phone=request.POST.get('customer_phone'),
-            shipping_address=request.POST.get('shipping_address'),
-            delivery_option=delivery_option,
-            delivery_fee=delivery_fee,
-            subtotal=subtotal,
-            total_amount=total_amount,
-            notes=request.POST.get('notes', '')
-        )
-        
-        # Create initial status history entry
-        OrderStatusHistory.objects.create(
-            order=order,
-            status='pending',
-            notes='Order placed successfully via website',
-            created_by='Customer'
-        )
-        
-        # Create order items and update stock
-        for cart_item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity,
-                price=cart_item.product.price
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            # Get validated data
+            delivery_option = form.cleaned_data['delivery_option']
+            delivery_fee = delivery_option.price if delivery_option else 0
+            total_amount = subtotal + delivery_fee
+            
+            # Create order
+            order = Order.objects.create(
+                customer_name=form.cleaned_data['customer_name'],
+                customer_email=form.cleaned_data['customer_email'],
+                customer_phone=form.cleaned_data['customer_phone'],
+                shipping_address=form.cleaned_data['shipping_address'],
+                delivery_option=delivery_option,
+                delivery_fee=delivery_fee,
+                subtotal=subtotal,
+                total_amount=total_amount,
+                notes=form.cleaned_data['notes']
             )
             
-            # Update product stock
-            cart_item.product.stock_quantity -= cart_item.quantity
-            cart_item.product.save()
-        
-        # Clear cart
-        cart_items.delete()
-        
-        messages.success(request, f'Order {order.order_id} placed successfully! Your tracking number is: {order.tracking_number}')
-        return redirect('order_confirmation', order_id=order.order_id)
+            # Create initial status history entry
+            OrderStatusHistory.objects.create(
+                order=order,
+                status='pending',
+                notes='Order placed successfully via website',
+                created_by='Customer'
+            )
+            
+            # Create order items and update stock
+            for cart_item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    price=cart_item.product.price
+                )
+                
+                # Update product stock
+                cart_item.product.stock_quantity -= cart_item.quantity
+                cart_item.product.save()
+            
+            # Clear cart
+            cart_items.delete()
+            
+            messages.success(request, f'Order {order.order_id} placed successfully! Your tracking number is: {order.tracking_number}')
+            return redirect('order_confirmation', order_id=order.order_id)
+    else:
+        form = CheckoutForm()
     
     context = {
+        'form': form,
         'cart_items': cart_items,
         'subtotal': subtotal,
         'delivery_options': delivery_options,

@@ -215,7 +215,7 @@
                                     </a>
                                 </div>
                                 <!-- WhatsApp Order Button - Full Width -->
-                                <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'm interested in ordering this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0APlease let me know about availability and delivery details." 
+                                <a href="https://wa.me/{{ site_settings.phone_number|default:'15551234567' }}?text=Hi! I'm interested in ordering this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0APlease let me know about availability and delivery details." 
                                    target="_blank" 
                                    class="btn btn-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
                                    style="border-radius: 999px; font-size: 1rem; font-weight: 500; background-color: #25D366; border-color: #25D366;"
@@ -232,7 +232,7 @@
                         <i class="fas fa-times me-2"></i>Out of Stock
                     </button>
                     <!-- WhatsApp Inquiry Button for Out of Stock -->
-                    <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'15551234567' }}?text=Hi! I'm interested in this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0AThis product is currently out of stock. When will it be available again?" 
+                    <a href="https://wa.me/{{ site_settings.phone_number|default:'15551234567' }}?text=Hi! I'm interested in this product:%0A%0A*{{ product.name|urlencode }}*%0APrice: ৳{{ product.price }}%0A%0AProduct Link: {{ request.build_absolute_uri }}%0A%0AThis product is currently out of stock. When will it be available again?" 
                        target="_blank" 
                        class="btn btn-outline-success btn-lg px-3 py-2 fw-semibold shadow-sm d-flex align-items-center justify-content-center w-100" 
                        style="border-radius: 999px; font-size: 1rem; font-weight: 500; border-color: #25D366; color: #25D366;"
