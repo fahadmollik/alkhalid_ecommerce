@@ -10,8 +10,7 @@ __pycache__/
 
 # Media/static
 /media/
-# /static/
-# /staticfiles/
+/staticfiles/  # Ignore collected static files
 
 # VS Code
 .vscode/

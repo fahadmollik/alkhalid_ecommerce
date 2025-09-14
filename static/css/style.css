@@ -970,32 +970,25 @@ header .row {
     gap: 15px;
 }
 
-.category-item {
+/* Carousel specific category items */
+.categories-carousel-track .category-item {
     flex-shrink: 0;
-    width: calc(16.666% - 12.5px); /* 6 items per row on desktop */
+    width: calc(16.666% - 12.5px); /* 6 items per slide on desktop */
     min-width: 150px;
 }
 
-/* Mobile responsive */
-@media (max-width: 575px) {
-    .category-item {
-        width: calc(50% - 7.5px); /* 2 items per row on mobile */
-        min-width: 140px;
+/* Mobile responsive - 4 categories per slide */
+@media (max-width: 767px) {
+    .categories-carousel-track .category-item {
+        width: calc(25% - 11.25px); /* 4 items per slide on mobile */
+        min-width: 120px;
     }
 }
 
-/* Small tablets */
-@media (min-width: 576px) and (max-width: 767px) {
-    .category-item {
-        width: calc(33.333% - 10px); /* 3 items per row on small tablets */
-        min-width: 150px;
-    }
-}
-
-/* Medium tablets and up */
+/* Desktop - 6 categories per slide */
 @media (min-width: 768px) {
-    .category-item {
-        width: calc(16.666% - 12.5px); /* 6 items per row on desktop */
+    .categories-carousel-track .category-item {
+        width: calc(16.666% - 12.5px); /* 6 items per slide on desktop */
         min-width: 150px;
     }
 }

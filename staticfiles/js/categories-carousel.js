@@ -7,22 +7,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (!track) return;
     
-    let currentIndex = 0;
+    let currentSlide = 0;
     const items = track.querySelectorAll('.category-item');
     
     if (items.length === 0) return;
     
-    // Calculate responsive item width and visible count
+    // Get responsive settings for slides
     function getResponsiveSettings() {
         const containerWidth = track.parentElement.offsetWidth;
         const itemWidth = items[0].offsetWidth;
-        const gap = 15; // Gap between items
-        const visibleCount = Math.floor(containerWidth / (itemWidth + gap));
+        const gap = 15;
+        
+        // Determine items per slide based on screen width
+        let itemsPerSlide;
+        if (containerWidth < 768) {
+            itemsPerSlide = 4; // Mobile: 4 items per slide
+        } else {
+            itemsPerSlide = 6; // Desktop: 6 items per slide
+        }
+        
+        const totalSlides = Math.ceil(items.length / itemsPerSlide);
         
         return {
             itemWidth: itemWidth + gap,
-            visibleCount: Math.max(1, visibleCount),
-            maxIndex: Math.max(0, items.length - visibleCount)
+            itemsPerSlide: itemsPerSlide,
+            totalSlides: totalSlides,
+            maxSlide: totalSlides - 1
         };
     }
     
@@ -30,38 +40,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update carousel position
     function updateCarousel() {
-        const translateX = -(currentIndex * settings.itemWidth);
+        const slideOffset = currentSlide * settings.itemsPerSlide;
+        const translateX = -(slideOffset * settings.itemWidth);
         track.style.transform = `translateX(${translateX}px)`;
         
         // Update button states
         if (prevBtn) {
-            prevBtn.style.opacity = currentIndex === 0 ? '0.5' : '1';
-            prevBtn.disabled = currentIndex === 0;
+            prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
+            prevBtn.disabled = currentSlide === 0;
         }
         
         if (nextBtn) {
-            nextBtn.style.opacity = currentIndex >= settings.maxIndex ? '0.5' : '1';
-            nextBtn.disabled = currentIndex >= settings.maxIndex;
+            nextBtn.style.opacity = currentSlide >= settings.maxSlide ? '0.5' : '1';
+            nextBtn.disabled = currentSlide >= settings.maxSlide;
         }
         
         // Update indicators
         updateIndicators();
     }
     
-    // Update indicators (mobile only)
+    // Update indicators
     function updateIndicators() {
         if (!indicators) return;
         
         indicators.innerHTML = '';
-        const totalPages = Math.ceil(items.length / settings.visibleCount);
         
-        for (let i = 0; i < totalPages; i++) {
+        for (let i = 0; i < settings.totalSlides; i++) {
             const indicator = document.createElement('button');
-            indicator.className = `indicator ${i === Math.floor(currentIndex / settings.visibleCount) ? 'active' : ''}`;
-            indicator.setAttribute('aria-label', `Go to page ${i + 1}`);
+            indicator.className = `indicator ${i === currentSlide ? 'active' : ''}`;
+            indicator.setAttribute('aria-label', `Go to slide ${i + 1}`);
             indicator.addEventListener('click', () => {
-                currentIndex = i * settings.visibleCount;
-                if (currentIndex > settings.maxIndex) currentIndex = settings.maxIndex;
+                currentSlide = i;
                 updateCarousel();
             });
             indicators.appendChild(indicator);
@@ -72,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (prevBtn) {
         prevBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (currentIndex > 0) {
-                currentIndex--;
+            if (currentSlide > 0) {
+                currentSlide--;
                 updateCarousel();
             }
         });
@@ -82,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (nextBtn) {
         nextBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (currentIndex < settings.maxIndex) {
-                currentIndex++;
+            if (currentSlide < settings.maxSlide) {
+                currentSlide++;
                 updateCarousel();
             }
         });
@@ -105,7 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const diff = startX - currentX;
         
         // Add visual feedback during swipe
-        const translateX = -(currentIndex * settings.itemWidth) - diff;
+        const slideOffset = currentSlide * settings.itemsPerSlide;
+        const translateX = -(slideOffset * settings.itemWidth) - diff;
         track.style.transform = `translateX(${translateX}px)`;
     }, { passive: true });
     
@@ -117,12 +127,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const threshold = 50; // Minimum swipe distance
         
         if (Math.abs(diff) > threshold) {
-            if (diff > 0 && currentIndex < settings.maxIndex) {
-                // Swipe left - next
-                currentIndex++;
-            } else if (diff < 0 && currentIndex > 0) {
-                // Swipe right - previous
-                currentIndex--;
+            if (diff > 0 && currentSlide < settings.maxSlide) {
+                // Swipe left - next slide
+                currentSlide++;
+            } else if (diff < 0 && currentSlide > 0) {
+                // Swipe right - previous slide
+                currentSlide--;
             }
         }
         
@@ -134,10 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function startAutoAdvance() {
         autoAdvanceInterval = setInterval(() => {
-            if (currentIndex >= settings.maxIndex) {
-                currentIndex = 0;
+            if (currentSlide >= settings.maxSlide) {
+                currentSlide = 0;
             } else {
-                currentIndex++;
+                currentSlide++;
             }
             updateCarousel();
         }, 5000); // 5 seconds
@@ -149,8 +159,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Start auto-advance if there are enough items
-    if (items.length > settings.visibleCount) {
+    // Start auto-advance if there are enough slides
+    if (settings.totalSlides > 1) {
         startAutoAdvance();
         
         // Pause on hover
@@ -165,8 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle window resize
     window.addEventListener('resize', function() {
         settings = getResponsiveSettings();
-        if (currentIndex > settings.maxIndex) {
-            currentIndex = settings.maxIndex;
+        if (currentSlide > settings.maxSlide) {
+            currentSlide = settings.maxSlide;
         }
         updateCarousel();
     });
@@ -176,7 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Categories carousel initialized:', {
         items: items.length,
-        visibleCount: settings.visibleCount,
-        maxIndex: settings.maxIndex
+        itemsPerSlide: settings.itemsPerSlide,
+        totalSlides: settings.totalSlides,
+        maxSlide: settings.maxSlide
     });
 });
