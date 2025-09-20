@@ -237,9 +237,9 @@
                                 <td>{{ forloop.counter }}</td>
                                 <td>
                                     <strong>{{ item.product.name }}</strong>
-                                    {% if item.product.description %}
-                                        <br><small class="text-muted">{{ item.product.description|truncatechars:100 }}</small>
-                                    {% endif %}
+                                    <!-- {% if item.product.description %}
+                                        <br><small class="text-muted">{{ item.product.description|safe|truncatechars:100 }}</small>
+                                    {% endif %} -->
                                 </td>
                                 <td>{{ item.product.category.name }}</td>
                                 <td class="text-center">{{ item.quantity }}</td>
