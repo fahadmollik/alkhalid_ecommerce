@@ -146,10 +146,10 @@
                         {% if product.original_price and product.original_price > product.price %}
                             <!-- Discounted Price -->
                             <div class="current-price">
-                                <span class="h3 text-success fw-bold mb-0">${{ product.price }}</span>
+                                <span class="h3 text-success fw-bold mb-0">৳{{ product.price }}</span>
                             </div>
                             <div class="original-price">
-                                <span class="text-decoration-line-through text-muted h5">${{ product.original_price }}</span>
+                                <span class="text-decoration-line-through text-muted h5">৳{{ product.original_price }}</span>
                             </div>
                             <div class="discount-badge">
                                 <span class="badge bg-danger fs-6">SALE</span>
@@ -157,7 +157,7 @@
                         {% else %}
                             <!-- Regular Price -->
                             <div class="current-price">
-                                <span class="h3 text-primary fw-bold mb-0">${{ product.price }}</span>
+                                <span class="h3 text-primary fw-bold mb-0">৳{{ product.price }}</span>
                             </div>
                         {% endif %}
                     </div>
